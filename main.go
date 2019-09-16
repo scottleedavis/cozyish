@@ -5,11 +5,11 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
-	"os"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -27,8 +27,8 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler)
 	srv := &http.Server{
-		Handler: r,
-		Addr:    "0.0.0.0:8000",
+		Handler:      r,
+		Addr:         "0.0.0.0:8000",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
