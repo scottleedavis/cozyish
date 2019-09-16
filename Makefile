@@ -1,4 +1,4 @@
 
 
 build:
-	docker build -t go-docker .
+	docker build -t cozyish .
