@@ -1,8 +1,5 @@
 package main
 
-//server
-//server page with session id
-
 import (
 	"fmt"
 	"github.com/gorilla/mux"
@@ -37,7 +34,6 @@ func main() {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	// vars := mux.Vars(r)
 	session, _ := store.Get(r, "cozyish-store")
 	if session.Values["client"] == nil {
 		session.Values["client"] = randomId()

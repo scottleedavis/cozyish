@@ -6,8 +6,11 @@
 #### make run-docker
 * runs the local docker image
 
-#### build:
+#### make build-docker:
 * builds the docker image 
 
-#### deploy:
+#### make deploy-docker:
 * deploys the image to docker hub
+
+#### notes
+* https://aws.amazon.com/getting-started/tutorials/deploy-docker-containers/

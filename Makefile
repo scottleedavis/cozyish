@@ -5,9 +5,9 @@ run:
 run-docker:
 	docker run -p 8000:8000 scottleedavis/cozyish:latest
 
-build:
+build-docker:
 	docker build -t scottleedavis/cozyish .
 
-deploy:
+deploy-docker:
 	docker push scottleedavis/cozyish:latest
 
