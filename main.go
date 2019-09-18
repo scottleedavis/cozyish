@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
 	"math/rand"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 )
 
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
