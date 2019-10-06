@@ -1,9 +1,9 @@
 version: '3'
 services:
-  api-server:
-    build: ./api-server
-    ports:
-      - "8000:8000"
+  # api-server:
+  #   build: ./api-server
+  #   ports:
+  #     - "8000:8000"
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
     environment:
@@ -23,3 +23,5 @@ services:
       MINIO_ACCESS_KEY: minioaccesskey
       MINIO_SECRET_KEY: miniosecretkey
       MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+    ports:
+      - 9000:9000

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/rand"
 	"net/http"
 	"os"
@@ -15,14 +16,15 @@ import (
 	"github.com/elastic/go-elasticsearch/v6/esapi"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/minio/minio-go/v6"
 )
 
-var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
+var cookieStore = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 var es, _ = elasticsearch.NewDefaultClient()
 
 func main() {
 
-	store.Options = &sessions.Options{
+	cookieStore.Options = &sessions.Options{
 		MaxAge:   1,
 		Secure:   false,
 		HttpOnly: false,
@@ -36,14 +38,11 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-
-	fmt.Println(elasticsearch.Version)
-	fmt.Println(es.Info())
 	srv.ListenAndServe()
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "cozyish-store")
+	session, _ := cookieStore.Get(r, "cozyish-store")
 	if session.Values["client"] == nil {
 		session.Values["client"] = randomId()
 	}
@@ -58,6 +57,11 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp, err := index(reqBody)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err = store(reqBody)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -96,6 +100,44 @@ func index(reqBody map[string]interface{}) ([]byte, error) {
 	return jsonString, nil
 }
 
+func store(reqBody map[string]interface{}) error {
+
+	filePath := "./test.png"
+	if err := DownloadFile(filePath, reqBody["image"].(string)); err != nil {
+		panic(err)
+	}
+
+	endpoint := "localhost:9000"
+	accessKeyID := "minioaccesskey"
+	secretAccessKey := "miniosecretkey"
+	useSSL := false
+
+	minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	bucketName := "cozyish-file-store"
+	location := "none"
+
+	err = minioClient.MakeBucket(bucketName, location)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Successfully created %s\n", bucketName)
+	fmt.Println("****&&&&")
+
+	n, err := minioClient.FPutObject(bucketName, fmt.Sprintf("%f", reqBody["id"].(float64)), filePath, minio.PutObjectOptions{ContentType: "application/png"})
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+
+	fmt.Println("Successfully uploaded of size %d\n", n)
+	return nil
+}
+
 func randomId() string {
 	rand.Seed(time.Now().UnixNano())
 	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ" +
@@ -107,4 +149,25 @@ func randomId() string {
 		b.WriteRune(chars[rand.Intn(len(chars))])
 	}
 	return b.String()
+}
+
+func DownloadFile(filepath string, url string) error {
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Create the file
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return err
 }
