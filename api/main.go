@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"math/rand"
 	"net/http"
 	"os"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"github.com/minio/minio-go/v6"
 	"github.com/streadway/amqp"
 )
 
@@ -52,58 +50,11 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// err = store(reqBody)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	return
-	// }
-
 	queue(reqBody)
 
 	w.Header().Set("Content-Type", "application/json")
 	// fmt.Fprintf(w, string(resp))
 	fmt.Fprintf(w, "{}")
-}
-
-func store(reqBody map[string]interface{}) error {
-
-	filePath := "./test.png"
-	if err := DownloadFile(filePath, reqBody["image"].(string)); err != nil {
-		panic(err)
-	}
-
-	endpoint := "localhost:9000"
-	accessKeyID := "minioaccesskey"
-	secretAccessKey := "miniosecretkey"
-	useSSL := false
-
-	minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	bucketName := "cozyish-file-store"
-	location := "none"
-
-	found, err := minioClient.BucketExists(bucketName)
-	if err != nil {
-		err = minioClient.MakeBucket(bucketName, location)
-		if err != nil {
-			return err
-		}
-	}
-	if found {
-		fmt.Println("Bucket found")
-	}
-	n, err := minioClient.FPutObject(bucketName, fmt.Sprintf("%f", reqBody["id"].(float64)), filePath, minio.PutObjectOptions{ContentType: "application/png"})
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
-	}
-
-	fmt.Println("Successfully uploaded of size %d\n", n)
-	return nil
 }
 
 func queue(reqBody map[string]interface{}) {
@@ -157,25 +108,4 @@ func randomId() string {
 		b.WriteRune(chars[rand.Intn(len(chars))])
 	}
 	return b.String()
-}
-
-func DownloadFile(filepath string, url string) error {
-
-	// Get the data
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
 }

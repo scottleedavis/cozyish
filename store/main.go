@@ -1,14 +1,14 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
 	"strings"
 
-	elasticsearch "github.com/elastic/go-elasticsearch/v6"
-	esapi "github.com/elastic/go-elasticsearch/v6/esapi"
+	"github.com/minio/minio-go/v6"
 	"github.com/streadway/amqp"
 )
 
@@ -22,7 +22,7 @@ func main() {
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
 	q, err := ch.QueueDeclare(
-		"incoming-cache", // name
+		"incoming-store", // name
 		false,            // durable
 		false,            // delete when unused
 		false,            // exclusive
@@ -52,17 +52,17 @@ func main() {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
 				fmt.Println("***** " + reqBody["image"].(string))
-				err = index(reqBody)
+				err = store(reqBody)
 				if err != nil {
-					fmt.Println("error in cacheing data " + err.Error())
+					fmt.Println("error in storing data " + err.Error())
 				} else {
 					q2, err := ch.QueueDeclare(
-						"incoming-store", // name
-						false,            // durable
-						false,            // delete when unused
-						false,            // exclusive
-						false,            // no-wait
-						nil,              // arguments
+						"incoming-transform", // name
+						false,                // durable
+						false,                // delete when unused
+						false,                // exclusive
+						false,                // no-wait
+						nil,                  // arguments
 					)
 					failOnError(err, "Failed to declare a queue")
 					err = ch.Publish(
@@ -75,6 +75,7 @@ func main() {
 							Body:        []byte(d.Body),
 						})
 					failOnError(err, "Failed to publish a message")
+
 				}
 			}
 
@@ -89,33 +90,68 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func index(reqBody map[string]interface{}) error {
+func store(reqBody map[string]interface{}) error {
 
-	var es, _ = elasticsearch.NewDefaultClient()
+	p := strings.Split(reqBody["image"].(string), "/")
+	filePath := p[len(p)-1]
 
-	jsonString, _ := json.Marshal(reqBody)
-
-	req := esapi.IndexRequest{
-		Index:      "cozyish-images",
-		DocumentID: fmt.Sprintf("%f", reqBody["id"].(float64)),
-		Body:       strings.NewReader(string(jsonString)),
-		Refresh:    "true",
+	if err := DownloadFile(filePath, reqBody["image"].(string)); err != nil {
+		panic(err)
 	}
 
-	res, err := req.Do(context.Background(), es)
+	endpoint := "minio:9000"
+	accessKeyID := "minioaccesskey"
+	secretAccessKey := "miniosecretkey"
+	useSSL := false
+
+	minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
 	if err != nil {
-		fmt.Println("Error getting response: %s", err)
+		fmt.Println(err)
 	}
-	defer res.Body.Close()
 
-	var r2 map[string]interface{}
-	err = json.NewDecoder(res.Body).Decode(&r2)
+	bucketName := "cozyish-file-store"
+	location := "none"
+
+	found, err := minioClient.BucketExists(bucketName)
 	if err != nil {
-		fmt.Println("Error parsing the response body: %s", err)
-		return errors.New("Error parse es response")
+		fmt.Println("Bucket exists error " + err.Error())
+		err = minioClient.MakeBucket(bucketName, location)
+		if err != nil {
+			fmt.Println("Make bucket error " + err.Error())
+			return err
+		}
+	}
+	if found {
+		fmt.Println("Bucket found")
 	}
 
-	fmt.Println("[%s] %s; version=%d", res.Status(), r2["result"], int(r2["_version"].(float64)))
+	n, err := minioClient.FPutObject(bucketName, fmt.Sprintf("%f", reqBody["id"].(float64)), filePath, minio.PutObjectOptions{ContentType: "application/png"})
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
 
+	fmt.Println("Successfully uploaded of size %d\n", n)
 	return nil
+}
+
+func DownloadFile(filepath string, url string) error {
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Create the file
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return err
 }

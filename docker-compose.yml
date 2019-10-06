@@ -5,15 +5,23 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - minio
       - rabbitmq
-      - cache
   cache:
     build: ./cache
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
     depends_on:
       - elasticsearch
+      - rabbitmq
+  store:
+    build: ./store
+    depends_on:
+      - minio
+      - rabbitmq
+  transform:
+    build: ./transform
+    depends_on:
+      - minio
       - rabbitmq
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
