@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"math/rand"
@@ -12,15 +10,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v6"
-	"github.com/elastic/go-elasticsearch/v6/esapi"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/minio/minio-go/v6"
+	"github.com/streadway/amqp"
 )
 
 var cookieStore = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
-var es, _ = elasticsearch.NewDefaultClient()
 
 func main() {
 
@@ -56,48 +52,18 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := index(reqBody)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	err = store(reqBody)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	// err = store(reqBody)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	return
+	// }
+
+	queue(reqBody)
+
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, string(resp))
-
-}
-
-func index(reqBody map[string]interface{}) ([]byte, error) {
-
-	jsonString, _ := json.Marshal(reqBody)
-
-	req := esapi.IndexRequest{
-		Index:      "cozyish-test",
-		DocumentID: fmt.Sprintf("%f", reqBody["id"].(float64)),
-		Body:       strings.NewReader(string(jsonString)),
-		Refresh:    "true",
-	}
-
-	res, err := req.Do(context.Background(), es)
-	if err != nil {
-		fmt.Println("Error getting response: %s", err)
-	}
-	defer res.Body.Close()
-
-	var r2 map[string]interface{}
-	err = json.NewDecoder(res.Body).Decode(&r2)
-	if err != nil {
-		fmt.Println("Error parsing the response body: %s", err)
-		return nil, errors.New("Error parse es response")
-	}
-
-	fmt.Println("[%s] %s; version=%d", res.Status(), r2["result"], int(r2["_version"].(float64)))
-
-	return jsonString, nil
+	// fmt.Fprintf(w, string(resp))
+	fmt.Fprintf(w, "{}")
 }
 
 func store(reqBody map[string]interface{}) error {
@@ -120,14 +86,16 @@ func store(reqBody map[string]interface{}) error {
 	bucketName := "cozyish-file-store"
 	location := "none"
 
-	err = minioClient.MakeBucket(bucketName, location)
+	found, err := minioClient.BucketExists(bucketName)
 	if err != nil {
-		return err
+		err = minioClient.MakeBucket(bucketName, location)
+		if err != nil {
+			return err
+		}
 	}
-
-	fmt.Println("Successfully created %s\n", bucketName)
-	fmt.Println("****&&&&")
-
+	if found {
+		fmt.Println("Bucket found")
+	}
 	n, err := minioClient.FPutObject(bucketName, fmt.Sprintf("%f", reqBody["id"].(float64)), filePath, minio.PutObjectOptions{ContentType: "application/png"})
 	if err != nil {
 		fmt.Println(err.Error())
@@ -136,6 +104,46 @@ func store(reqBody map[string]interface{}) error {
 
 	fmt.Println("Successfully uploaded of size %d\n", n)
 	return nil
+}
+
+func queue(reqBody map[string]interface{}) {
+	// conn, err := amqp.Dial("amqp://user:bitnami@localhost:5672/")
+	conn, err := amqp.Dial("amqp://user:bitnami@rabbitmq:5672/")
+	failOnError(err, "Failed to connect to RabbitMQ")
+	defer conn.Close()
+	ch, err := conn.Channel()
+	failOnError(err, "Failed to open a channel")
+	defer ch.Close()
+	q, err := ch.QueueDeclare(
+		"incoming-cache", // name
+		false,            // durable
+		false,            // delete when unused
+		false,            // exclusive
+		false,            // no-wait
+		nil,              // arguments
+	)
+	failOnError(err, "Failed to declare a queue")
+
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		panic(err)
+	}
+	err = ch.Publish(
+		"",     // exchange
+		q.Name, // routing key
+		false,  // mandatory
+		false,  // immediate
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        []byte(body),
+		})
+	failOnError(err, "Failed to publish a message")
+}
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		fmt.Println("%s: %s", msg, err)
+	}
 }
 
 func randomId() string {
