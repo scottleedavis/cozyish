@@ -11,7 +11,7 @@ app.config.from_object(__name__)
 
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-API_URL = "127.0.0.1:8000"
+API_URL = "api:8000"
 
 @app.route('/<url>', methods=['GET'])
 def index(url):
