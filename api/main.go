@@ -72,7 +72,6 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ImageListHandler(w http.ResponseWriter, r *http.Request) {
-	// vars := mux.Vars(r)
 	found, err := search()
 	if err != nil {
 		fmt.Println("Error searching: %s", err)
@@ -84,7 +83,6 @@ func ImageListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
-// todo, get the document id directly instead of search
 func ImageHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	fileProperties, err := get(vars["id"])
@@ -167,7 +165,9 @@ func get(id string) (map[string]interface{}, error) {
 	var buf bytes.Buffer
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
-			"match_all": map[string]interface{}{},
+			"match": map[string]interface{}{
+				"id": id,
+			},
 		},
 	}
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
@@ -215,6 +215,7 @@ func get(id string) (map[string]interface{}, error) {
 		if strconv.Itoa(iflt) == id {
 			doc := hit.(map[string]interface{})["_source"]
 			fileProperties = doc.(map[string]interface{})
+			break
 		}
 
 	}
