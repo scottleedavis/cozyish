@@ -31,7 +31,7 @@ services:
     build:
       context: ./crawler
     ports:
-      - "5000:5000"
+      - "4444:4444"
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
     environment:
