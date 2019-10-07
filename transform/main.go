@@ -152,7 +152,7 @@ func transform(reqBody map[string]interface{}) error {
 			}
 
 			w := &bytes.Buffer{}
-			err = steganography.Encode(w, img, []byte("touched by cozyish"))
+			err = steganography.Encode(w, img, []byte(""))
 			ioutil.WriteFile(filePath, filtered, 0644)
 		}
 	}

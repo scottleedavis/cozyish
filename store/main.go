@@ -6,16 +6,22 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/minio/minio-go/v6"
 	"github.com/streadway/amqp"
 )
 
+const (
+	RABBITMQ = "rabbitmq:5672"
+	MINIO    = "minio:9000"
+)
+
 func main() {
 
 	// conn, err := amqp.Dial("amqp://user:bitnami@localhost:5672/")
-	conn, err := amqp.Dial("amqp://user:bitnami@rabbitmq:5672/")
+	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 	ch, err := conn.Channel()
@@ -99,7 +105,7 @@ func store(reqBody map[string]interface{}) error {
 		panic(err)
 	}
 
-	endpoint := "minio:9000"
+	endpoint := MINIO
 	accessKeyID := "minioaccesskey"
 	secretAccessKey := "miniosecretkey"
 	useSSL := false
@@ -125,7 +131,16 @@ func store(reqBody map[string]interface{}) error {
 		fmt.Println("Bucket found")
 	}
 
-	n, err := minioClient.FPutObject(bucketName, fmt.Sprintf("%f", reqBody["id"].(float64)), filePath, minio.PutObjectOptions{ContentType: "application/png"})
+	contentType := ""
+	switch filepath.Ext(reqBody["image"].(string)) {
+	case ".png":
+		contentType = "image/png"
+	case ".jpg":
+		contentType = "image/jpg"
+	case ".jpeg":
+		contentType = "image/jpeg"
+	}
+	n, err := minioClient.FPutObject(bucketName, fmt.Sprintf("%f", reqBody["id"].(float64)), filePath, minio.PutObjectOptions{ContentType: contentType})
 	if err != nil {
 		fmt.Println(err.Error())
 		return err

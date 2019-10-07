@@ -2,10 +2,14 @@ version: '3'
 services:
   api:
     build: ./api
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
     ports:
       - "8000:8000"
     depends_on:
       - rabbitmq
+      - elasticsearch
+      - minio
   cache:
     build: ./cache
     environment:
