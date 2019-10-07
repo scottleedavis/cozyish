@@ -8,6 +8,7 @@ _todo_
 ![](cozyish.png)
 
 
+### Running
 ```bash
 docker-compose build
 
