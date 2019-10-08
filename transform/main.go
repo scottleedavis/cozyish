@@ -17,10 +17,16 @@ import (
 	steganography "gopkg.in/auyer/steganography.v2"
 )
 
+const (
+	RABBITMQ = "rabbitmq:5672"
+	MINIO    = "minio:9000"
+	// RABBITMQ = "localhost:5672"
+	// MINIO    = "localhost:9000"
+)
+
 func main() {
 
-	// conn, err := amqp.Dial("amqp://user:bitnami@localhost:5672/")
-	conn, err := amqp.Dial("amqp://user:bitnami@rabbitmq:5672/")
+	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 	ch, err := conn.Channel()
@@ -109,7 +115,7 @@ func transform(reqBody map[string]interface{}) error {
 		fmt.Println(err)
 	}
 
-	bucketName := "cozyish-file-store"
+	bucketName := "cozyish-images"
 	location := "none"
 
 	found, err := minioClient.BucketExists(bucketName)
@@ -122,7 +128,7 @@ func transform(reqBody map[string]interface{}) error {
 	if found {
 		fmt.Println("Bucket found")
 	}
-	err = minioClient.FGetObject(bucketName, fmt.Sprintf("%f", reqBody["id"].(float64)), filePath, minio.GetObjectOptions{})
+	err = minioClient.FGetObject(bucketName, reqBody["id"].(string), filePath, minio.GetObjectOptions{})
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -145,7 +151,7 @@ func transform(reqBody map[string]interface{}) error {
 				return err
 			}
 
-			//add stegonagraphy
+			//remove stegonagraphy
 			img, _, err := image.Decode(bytes.NewReader(filtered))
 			if err != nil {
 				return err
@@ -157,7 +163,7 @@ func transform(reqBody map[string]interface{}) error {
 		}
 	}
 
-	_, err = minioClient.FPutObject(bucketName, fmt.Sprintf("%f", reqBody["id"].(float64)), filePath, minio.PutObjectOptions{ContentType: "application/png"})
+	_, err = minioClient.FPutObject(bucketName, reqBody["id"].(string), filePath, minio.PutObjectOptions{ContentType: "application/png"})
 	if err != nil {
 		fmt.Println(err.Error())
 		return err

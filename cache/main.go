@@ -12,10 +12,14 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const (
+	RABBITMQ = "rabbitmq:5672"
+	// RABBITMQ = "localhost:5672"
+)
+
 func main() {
 
-	// conn, err := amqp.Dial("amqp://user:bitnami@localhost:5672/")
-	conn, err := amqp.Dial("amqp://user:bitnami@rabbitmq:5672/")
+	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 	ch, err := conn.Channel()
@@ -97,7 +101,7 @@ func index(reqBody map[string]interface{}) error {
 
 	req := esapi.IndexRequest{
 		Index:      "cozyish-images",
-		DocumentID: fmt.Sprintf("%f", reqBody["id"].(float64)),
+		DocumentID: fmt.Sprintf("%f", reqBody["id"].(string)),
 		Body:       strings.NewReader(string(jsonString)),
 		Refresh:    "true",
 	}

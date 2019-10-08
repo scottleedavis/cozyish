@@ -16,11 +16,12 @@ import (
 const (
 	RABBITMQ = "rabbitmq:5672"
 	MINIO    = "minio:9000"
+	// RABBITMQ = "localhost:5672"
+	// MINIO    = "localhost:9000"
 )
 
 func main() {
 
-	// conn, err := amqp.Dial("amqp://user:bitnami@localhost:5672/")
 	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -57,7 +58,6 @@ func main() {
 			if err != nil {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
-				fmt.Println("***** " + reqBody["image"].(string))
 				err = store(reqBody)
 				if err != nil {
 					fmt.Println("error in storing data " + err.Error())
@@ -115,7 +115,7 @@ func store(reqBody map[string]interface{}) error {
 		fmt.Println(err)
 	}
 
-	bucketName := "cozyish-file-store"
+	bucketName := "cozyish-images"
 	location := "none"
 
 	found, err := minioClient.BucketExists(bucketName)
@@ -126,9 +126,14 @@ func store(reqBody map[string]interface{}) error {
 			fmt.Println("Make bucket error " + err.Error())
 			return err
 		}
-	}
-	if found {
+	} else if found {
 		fmt.Println("Bucket found")
+	} else {
+		err = minioClient.MakeBucket(bucketName, location)
+		if err != nil {
+			fmt.Println("Make bucket error " + err.Error())
+			return err
+		}
 	}
 
 	contentType := ""
@@ -140,7 +145,8 @@ func store(reqBody map[string]interface{}) error {
 	case ".jpeg":
 		contentType = "image/jpeg"
 	}
-	n, err := minioClient.FPutObject(bucketName, fmt.Sprintf("%f", reqBody["id"].(float64)), filePath, minio.PutObjectOptions{ContentType: contentType})
+	fmt.Println("!@#!@# " + reqBody["id"].(string))
+	n, err := minioClient.FPutObject(bucketName, reqBody["id"].(string), filePath, minio.PutObjectOptions{ContentType: contentType})
 	if err != nil {
 		fmt.Println(err.Error())
 		return err

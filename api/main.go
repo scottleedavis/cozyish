@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,6 +23,8 @@ import (
 const (
 	RABBITMQ = "rabbitmq:5672"
 	MINIO    = "minio:9000"
+	// RABBITMQ = "localhost:5672"
+	// MINIO    = "localhost:9000"
 )
 
 var cookieStore = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
@@ -64,11 +65,13 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	reqBody["id"] = randomId()
 
 	queue(reqBody)
 
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, "{}")
+	b, _ := json.Marshal(reqBody)
+	fmt.Fprintf(w, string(b))
 }
 
 func ImageListHandler(w http.ResponseWriter, r *http.Request) {
@@ -80,6 +83,7 @@ func ImageListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	j, err := json.Marshal(found)
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(j)
 }
 
@@ -121,7 +125,7 @@ func download(fileProperties map[string]interface{}) ([]byte, error) {
 		return nil, err
 	}
 
-	bucketName := "cozyish-file-store"
+	bucketName := "cozyish-images"
 	location := "none"
 
 	found, err := minioClient.BucketExists(bucketName)
@@ -139,7 +143,7 @@ func download(fileProperties map[string]interface{}) ([]byte, error) {
 
 	p := strings.Split(fileProperties["image"].(string), "/")
 	filePath := p[len(p)-1]
-	err = minioClient.FGetObject(bucketName, fmt.Sprintf("%f", fileProperties["id"].(float64)), filePath, minio.GetObjectOptions{})
+	err = minioClient.FGetObject(bucketName, fileProperties["id"].(string), filePath, minio.GetObjectOptions{})
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, err
@@ -209,10 +213,11 @@ func get(id string) (map[string]interface{}, error) {
 
 	var fileProperties map[string]interface{}
 	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-		flt := (hit.(map[string]interface{})["_id"]).(string)
-		s, _ := strconv.ParseFloat(flt, 64)
-		iflt := int(s)
-		if strconv.Itoa(iflt) == id {
+		check_id := (hit.(map[string]interface{})["_id"]).(string)
+		check_id = fmt.Sprintf("%v", check_id)
+		check_id = strings.TrimPrefix(check_id, "%!f(string=")
+		check_id = strings.TrimSuffix(check_id, ")")
+		if check_id == id {
 			doc := hit.(map[string]interface{})["_source"]
 			fileProperties = doc.(map[string]interface{})
 			break
@@ -246,6 +251,7 @@ func search() ([]map[string]interface{}, error) {
 		es.Search.WithBody(&buf),
 		es.Search.WithTrackTotalHits(true),
 		es.Search.WithPretty(),
+		es.Search.WithSize(10000),
 	)
 	if err != nil {
 		fmt.Println("Error getting response: %s", err)
@@ -280,7 +286,6 @@ func search() ([]map[string]interface{}, error) {
 }
 
 func queue(reqBody map[string]interface{}) {
-	// conn, err := amqp.Dial("amqp://user:bitnami@localhost:5672/")
 	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()

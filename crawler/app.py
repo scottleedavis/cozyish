@@ -32,7 +32,7 @@ def index(url):
 	for image in images: 
 		images_output.append(scheme+url+"/"+image["src"])
 		req.add_header('Content-Type', 'application/json; charset=utf-8')
-		jsondata = json.dumps({"id": 1, "image": scheme+url+"/"+image["src"]})
+		jsondata = json.dumps({"tags": [], "image": scheme+url+"/"+image["src"]})
 		jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
 		req.add_header('Content-Length', len(jsondataasbytes))
 		urllib.request.urlopen(req, jsondataasbytes)
