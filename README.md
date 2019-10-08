@@ -19,7 +19,7 @@ docker-compose up
 A crawler image searches a provided site url for all png & jpg images, and index's them against the api.  The index payload is 
 ```json
 {
-    "image": "http://example.com/some/image/path.jpg"
+    "image": "http://example.com/some/image/path.jpg",
     "tags": ["optional", "tags"]
 }
 ```
