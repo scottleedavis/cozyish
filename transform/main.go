@@ -17,14 +17,18 @@ import (
 	steganography "gopkg.in/auyer/steganography.v2"
 )
 
-const (
-	RABBITMQ = "rabbitmq:5672"
-	MINIO    = "minio:9000"
-	// RABBITMQ = "localhost:5672"
-	// MINIO    = "localhost:9000"
-)
+var RABBITMQ = "localhost:5672"
+var MINIO = "localhost:9000"
 
 func main() {
+
+	if os.Getenv("RABBITMQ") != "" {
+		RABBITMQ = os.Getenv("RABBITMQ")
+	}
+
+	if os.Getenv("MINIO") != "" {
+		MINIO = os.Getenv("MINIO")
+	}
 
 	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
 	failOnError(err, "Failed to connect to RabbitMQ")

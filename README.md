@@ -2,7 +2,7 @@
 
 _todo_
 * extract all docker-compose urls to environment variables
-* classify
+* classify images
 * fun learning
 
 ![](cozyish.png)

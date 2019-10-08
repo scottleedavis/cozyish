@@ -20,13 +20,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
-const (
-	RABBITMQ = "rabbitmq:5672"
-	MINIO    = "minio:9000"
-	// RABBITMQ = "localhost:5672"
-	// MINIO    = "localhost:9000"
-)
-
+var RABBITMQ = "localhost:5672"
+var MINIO = "localhost:9000"
 var cookieStore = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
 func main() {
@@ -48,6 +43,15 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
+
+	if os.Getenv("RABBITMQ") != "" {
+		RABBITMQ = os.Getenv("RABBITMQ")
+	}
+
+	if os.Getenv("MINIO") != "" {
+		MINIO = os.Getenv("MINIO")
+	}
+
 	srv.ListenAndServe()
 }
 

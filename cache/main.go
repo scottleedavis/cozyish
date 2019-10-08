@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v6"
@@ -12,12 +13,13 @@ import (
 	"github.com/streadway/amqp"
 )
 
-const (
-	RABBITMQ = "rabbitmq:5672"
-	// RABBITMQ = "localhost:5672"
-)
+var RABBITMQ = "localhost:5672"
 
 func main() {
+
+	if os.Getenv("RABBITMQ") != "" {
+		RABBITMQ = os.Getenv("RABBITMQ")
+	}
 
 	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
 	failOnError(err, "Failed to connect to RabbitMQ")
