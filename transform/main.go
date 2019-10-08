@@ -72,12 +72,12 @@ func main() {
 					fmt.Println("error in storing data " + err.Error())
 				} else {
 					q2, err := ch.QueueDeclare(
-						"incoming-next", // name
-						false,           // durable
-						false,           // delete when unused
-						false,           // exclusive
-						false,           // no-wait
-						nil,             // arguments
+						"incoming-classify", // name
+						false,               // durable
+						false,               // delete when unused
+						false,               // exclusive
+						false,               // no-wait
+						nil,                 // arguments
 					)
 					failOnError(err, "Failed to declare a queue")
 					err = ch.Publish(
@@ -109,7 +109,7 @@ func transform(reqBody map[string]interface{}) error {
 	p := strings.Split(reqBody["image"].(string), "/")
 	filePath := p[len(p)-1]
 
-	endpoint := "minio:9000"
+	endpoint := MINIO
 	accessKeyID := "minioaccesskey"
 	secretAccessKey := "miniosecretkey"
 	useSSL := false
@@ -124,14 +124,22 @@ func transform(reqBody map[string]interface{}) error {
 
 	found, err := minioClient.BucketExists(bucketName)
 	if err != nil {
+		fmt.Println("Bucket exists error " + err.Error())
 		err = minioClient.MakeBucket(bucketName, location)
 		if err != nil {
+			fmt.Println("Make bucket error " + err.Error())
+			return err
+		}
+	} else if found {
+		fmt.Println("Bucket found")
+	} else {
+		err = minioClient.MakeBucket(bucketName, location)
+		if err != nil {
+			fmt.Println("Make bucket error " + err.Error())
 			return err
 		}
 	}
-	if found {
-		fmt.Println("Bucket found")
-	}
+
 	err = minioClient.FGetObject(bucketName, reqBody["id"].(string), filePath, minio.GetObjectOptions{})
 	if err != nil {
 		fmt.Println(err)

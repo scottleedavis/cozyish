@@ -1,8 +1,5 @@
 # cozyish
 
-_todo_
-* classify images
-
 ![](cozyish.png)
 
 
@@ -21,7 +18,15 @@ A crawler searches a provided site url for all png & jpg images, and index's the
     "tags": ["optional", "tags"]
 }
 ```
-The images are then cached, stored, transformed and classified.
+The images are then cached, stored, transformed and classified.  A resultant object can be queried, and the final image downloadable. e.g.
+```json
+{
+        "id": "sbykXske",
+        "image": "http://example.com/some/image/path.jpg",
+        "nsfw_score": 0.0003904797194991261,
+        "tags": ["optional", "tags"]
+    }
+```
 
 ### API
 * `:8000/api/index  `     - indexes given the above payload, returns the payload + a generated id field.
