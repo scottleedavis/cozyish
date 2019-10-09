@@ -49,6 +49,7 @@ services:
       - RABBITMQ=rabbitmq:5672
       - MINIO=minio:9000
       - NSFWAPI=nsfw_api:5000
+      - DEEPDETECT=deepdetect:8080
     depends_on:
       - rabbitmq
       - elasticsearch
@@ -91,5 +92,12 @@ services:
       - '5000:5000'
     environment:
       - PORT=5000
+  deepdetect:
+      image: 'jolibrain/deepdetect_cpu'
+      ports:
+        - '8080:8080'
+      volumes:
+        - ./classify/models:/opt/models/ 
+
 
 

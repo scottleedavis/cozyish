@@ -21,6 +21,12 @@ import (
 var RABBITMQ = "localhost:5672"
 var MINIO = "localhost:9000"
 var NSFWAPI = "localhost:5000"
+var DEEPDETECT = "localhost:8080"
+
+type NSFW struct {
+	Score float64 `json:"score"`
+	URL   string  `json:"url"`
+}
 
 func main() {
 
@@ -34,6 +40,10 @@ func main() {
 
 	if os.Getenv("NSFWAPI") != "" {
 		NSFWAPI = os.Getenv("NSFWAPI")
+	}
+
+	if os.Getenv("DEEPDETECT") != "" {
+		NSFWAPI = os.Getenv("DEEPDETECT")
 	}
 
 	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
@@ -152,41 +162,106 @@ func classify(reqBody map[string]interface{}) error {
 		return err
 	}
 
-	resp, err := http.Get("http://" + NSFWAPI + "/?url=" + reqBody["image"].(string))
-	if err != nil {
-		fmt.Printf("ERROR: unable to classify nswf_api" + err.Error() + "\n")
-		return err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error in read resp body " + err.Error())
-		return err
-	}
-
-	type NSWF struct {
-		Score float64 `json:"score"`
-		URL   string  `json:"url"`
-	}
-	var nswf NSWF
-	err = json.Unmarshal(body, &nswf)
-	if err != nil {
-		fmt.Println("ErroORR " + err.Error())
-		return err
-	}
-
-	fmt.Println("nswf classifier" + fmt.Sprintf("%f", nswf.Score) + " " + nswf.URL)
 	fileProperties, err := get(reqBody["id"].(string))
 	if err != nil {
 		fmt.Println("Error finding image: %s", err)
 		return err
 	}
 
-	//update cache with classification
-	fileProperties["nsfw_score"] = nswf.Score
+	nsfw, err := NsfwScore(reqBody)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fileProperties["nsfw_score"] = nsfw.Score
+
+	tags, err := ImageClassify(reqBody)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fileProperties["tags"] = tags
+
 	index(fileProperties)
 
 	return nil
+}
+
+func ImageClassify(reqBody map[string]interface{}) ([]string, error) {
+
+	buf := []byte(`{
+		"service":"imageserv",
+		"parameters":{
+		  "output":{
+			"best":3
+		  }
+		},
+		"data":["` + reqBody["image"].(string) + `"]
+	  }`)
+
+	resp, err := http.Post("http://"+DEEPDETECT+"/predict", "application/json", bytes.NewReader(buf))
+	if err != nil {
+		fmt.Println("Error in predict: " + err.Error())
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error in read resp body " + err.Error())
+		return nil, err
+	}
+	var bb map[string]interface{}
+	err = json.Unmarshal(body, &bb)
+	if err != nil {
+		fmt.Println("ErroORR " + err.Error())
+		return nil, err
+	}
+
+	tags := []string{}
+	predictions := (bb["body"].(map[string]interface{})["predictions"]).([]interface{})
+	if len(predictions) == 0 {
+		return tags, nil
+	}
+	classes := (predictions[0]).(map[string]interface{})["classes"].([]interface{})
+	for _, cc := range classes {
+		c := cc.(map[string]interface{})
+		cat := c["cat"].(string)
+		cat = strings.Replace(cat, ",", "", -1)
+		t := strings.Split(cat, " ")
+		if len(t) > 1 {
+			t = t[1 : len(t)-1]
+			if len(t) > 0 {
+				tags = append(tags, t[0])
+			}
+		}
+	}
+
+	// fmt.Println(fmt.Sprintf("%v", tags))
+	return tags, nil
+}
+
+func NsfwScore(reqBody map[string]interface{}) (NSFW, error) {
+	var nsfw NSFW
+	resp, err := http.Get("http://" + NSFWAPI + "/?url=" + reqBody["image"].(string))
+	if err != nil {
+		fmt.Printf("ERROR: unable to classify nsfw_api" + err.Error() + "\n")
+		return nsfw, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error in read resp body " + err.Error())
+		return nsfw, err
+	}
+
+	err = json.Unmarshal(body, &nsfw)
+	if err != nil {
+		fmt.Println("ErroORR " + err.Error())
+		return nsfw, err
+	}
+
+	fmt.Println("nsfw classifier" + fmt.Sprintf("%f", nsfw.Score) + " " + nsfw.URL)
+
+	return nsfw, nil
 }
 
 func DownloadFile(filepath string, url string) error {
