@@ -26,4 +26,4 @@ RUN go build -o main .
 
 
 # Command to run the executable
-CMD sleep 15 && ./main
+CMD sleep 30 && ./main

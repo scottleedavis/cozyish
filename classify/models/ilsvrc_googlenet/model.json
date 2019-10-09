@@ -1,16 +1,15 @@
 {
-    "description": "image classification service",
-    "mllib": "caffe",
-    "model": {
-        "init": "https://deepdetect.com/models/init/desktop/images/classification/ilsvrc_googlenet.tar.gz",
-        "repository": "/opt/models/ilsvrc_googlenet",
-    "create_repository": true
-    },
-    "parameters": {
-        "input": {
-            "connector": "image"
-        }
-    },
-    "type": "supervised"
-}
-
+		"description": "image classification service",
+		"mllib": "caffe",
+		"model": {
+			"init": "https://deepdetect.com/models/init/desktop/images/classification/ilsvrc_googlenet.tar.gz",
+			"repository": "/opt/models/ilsvrc_googlenet",
+		"create_repository": true
+		},
+		"parameters": {
+			"input": {
+				"connector": "image"
+			}
+		},
+		"type": "supervised"
+	}

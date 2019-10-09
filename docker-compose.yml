@@ -6,6 +6,8 @@ services:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - RABBITMQ=rabbitmq:5672
       - MINIO=minio:9000
+      - MINIO_ACCESS_KEY=minioaccesskey
+      - MINIO_SECRET_KEY=miniosecretkey
     ports:
       - "8000:8000"
     depends_on:
@@ -25,6 +27,8 @@ services:
     environment:
       - RABBITMQ=rabbitmq:5672
       - MINIO=minio:9000
+      - MINIO_ACCESS_KEY=minioaccesskey
+      - MINIO_SECRET_KEY=miniosecretkey
     depends_on:
       - minio
       - rabbitmq
@@ -48,6 +52,8 @@ services:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - RABBITMQ=rabbitmq:5672
       - MINIO=minio:9000
+      - MINIO_ACCESS_KEY=minioaccesskey
+      - MINIO_SECRET_KEY=miniosecretkey
       - NSFWAPI=nsfw_api:5000
       - DEEPDETECT=deepdetect:8080
     depends_on:

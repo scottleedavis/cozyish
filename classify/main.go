@@ -20,6 +20,8 @@ import (
 
 var RABBITMQ = "localhost:5672"
 var MINIO = "localhost:9000"
+var MINIO_ACCESS_KEY = "minioaccesskey"
+var MINIO_SECRET_KEY = "miniosecretkey"
 var NSFWAPI = "localhost:5000"
 var DEEPDETECT = "localhost:8080"
 
@@ -38,12 +40,47 @@ func main() {
 		MINIO = os.Getenv("MINIO")
 	}
 
+	if os.Getenv("MINIO_ACCESS_KEY") != "" {
+		MINIO_ACCESS_KEY = os.Getenv("MINIO_ACCESS_KEY")
+	}
+
+	if os.Getenv("MINIO_SECRET_KEY") != "" {
+		MINIO_SECRET_KEY = os.Getenv("MINIO_SECRET_KEY")
+	}
+
 	if os.Getenv("NSFWAPI") != "" {
 		NSFWAPI = os.Getenv("NSFWAPI")
 	}
 
 	if os.Getenv("DEEPDETECT") != "" {
-		NSFWAPI = os.Getenv("DEEPDETECT")
+		DEEPDETECT = os.Getenv("DEEPDETECT")
+	}
+
+	data := `{
+		"description": "image classification service",
+		"mllib": "caffe",
+		"model": {
+			"init": "https://deepdetect.com/models/init/desktop/images/classification/ilsvrc_googlenet.tar.gz",
+			"repository": "/opt/models/ilsvrc_googlenet",
+		"create_repository": true
+		},
+		"parameters": {
+			"input": {
+				"connector": "image"
+			}
+		},
+		"type": "supervised"
+	}`
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodPut, "http://"+DEEPDETECT+"/services/imageserv", bytes.NewReader([]byte(data)))
+	if err != nil {
+		// handle error
+		fmt.Println(err.Error())
+	}
+	_, err = client.Do(req)
+	if err != nil {
+		// handle error
+		fmt.Println(err.Error())
 	}
 
 	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
@@ -126,8 +163,8 @@ func classify(reqBody map[string]interface{}) error {
 	filePath := p[len(p)-1]
 
 	endpoint := MINIO
-	accessKeyID := "minioaccesskey"
-	secretAccessKey := "miniosecretkey"
+	accessKeyID := MINIO_ACCESS_KEY
+	secretAccessKey := MINIO_SECRET_KEY
 	useSSL := false
 
 	minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
@@ -217,6 +254,11 @@ func ImageClassify(reqBody map[string]interface{}) ([]string, error) {
 	}
 
 	tags := []string{}
+
+	if bb["body"] == nil {
+		return tags, nil
+	}
+
 	predictions := (bb["body"].(map[string]interface{})["predictions"]).([]interface{})
 	if len(predictions) == 0 {
 		return tags, nil

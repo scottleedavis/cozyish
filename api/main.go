@@ -22,6 +22,8 @@ import (
 
 var RABBITMQ = "localhost:5672"
 var MINIO = "localhost:9000"
+var MINIO_ACCESS_KEY = "minioaccesskey"
+var MINIO_SECRET_KEY = "miniosecretkey"
 var cookieStore = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
 func main() {
@@ -50,6 +52,14 @@ func main() {
 
 	if os.Getenv("MINIO") != "" {
 		MINIO = os.Getenv("MINIO")
+	}
+
+	if os.Getenv("MINIO_ACCESS_KEY") != "" {
+		MINIO_ACCESS_KEY = os.Getenv("MINIO_ACCESS_KEY")
+	}
+
+	if os.Getenv("MINIO_SECRET_KEY") != "" {
+		MINIO_SECRET_KEY = os.Getenv("MINIO_SECRET_KEY")
 	}
 
 	srv.ListenAndServe()
@@ -119,8 +129,8 @@ func ImageHandler(w http.ResponseWriter, r *http.Request) {
 
 func download(fileProperties map[string]interface{}) ([]byte, error) {
 	endpoint := MINIO
-	accessKeyID := "minioaccesskey"
-	secretAccessKey := "miniosecretkey"
+	accessKeyID := MINIO_ACCESS_KEY
+	secretAccessKey := MINIO_SECRET_KEY
 	useSSL := false
 
 	minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
