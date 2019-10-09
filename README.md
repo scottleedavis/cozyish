@@ -39,13 +39,13 @@ The images are then cached, stored, transformed and classified.  A resultant obj
 
 
 ### Dependencies
-* Elasticsearch
-* Minio
-* Docker (docker-compose)
-* RabbitMQ
-* Yahoo nsfw api
-* Deep Detect
-* go-exif-remove
-* steganography
+* [Elasticsearch](https://www.elastic.co/)
+* [Minio](https://min.io/)
+* [Docker](https://www.docker.com/) & [(docker-compose)](https://docs.docker.com/compose/)
+* [RabbitMQ](https://www.rabbitmq.com/)
+* [Yahoo nsfw api](https://github.com/yahoo/open_nsfw)
+* [Deep Detect](https://www.deepdetect.com/)
+* [go-exif-remove](https://github.com/scottleedavis/go-exif-remove)
+* [steganography](https://github.com/auyer/steganography)
 
 
