@@ -2,14 +2,6 @@
 
 ![](cozyish.png)
 
-
-### Running
-```bash
-docker-compose build
-
-docker-compose up
-```
-
 ### Concept
 A crawler searches a provided site url for all png & jpg images, and index's them against the api.  The index payload is 
 ```json
@@ -37,6 +29,13 @@ The images are then cached, stored, transformed and classified.  A resultant obj
 * `:8000/api/image/{id}`  - raw transformed image
 * `:4444/{site} `         - without scheme e.g. secretagentsnowman.com
 
+
+### Running
+```bash
+docker-compose build
+
+docker-compose up
+```
 
 ### Dependencies
 * [Elasticsearch](https://www.elastic.co/)
