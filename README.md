@@ -31,7 +31,7 @@ docker-compose up
 ```
 
 ### Usage
-1) Crawl a website for its images using the sitename as a path parameter. e.g. `localhost:4444/sitename.com`.   (alternatively, index a single image at `localhost:8000/api/index`)
+1) Crawl a website for its images using the sitename as a path parameter. e.g. `localhost:4444/?url=https://sitename.com`.   (alternatively, index a single image at `localhost:8000/api/index`)
 2) View all indexed, transformed and classified images. e.g. `localhost:8000/api/image`
 
 
@@ -39,7 +39,7 @@ docker-compose up
 * `:8000/api/index  `     - indexes given the above payload, returns the payload + a generated id field.
 * `:8000/api/image  `     - json array of indexed/stored/transformed images
 * `:8000/api/image/{id}`  - raw transformed image
-* `:4444/{site} `         - without scheme e.g. secretagentsnowman.com
+* `:4444/?url={site} `         - without scheme e.g. secretagentsnowman.com
 
 
 
