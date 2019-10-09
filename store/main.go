@@ -66,7 +66,6 @@ func main() {
 	wait := make(chan bool)
 	go func() {
 		for d := range msgs {
-			fmt.Println("Received a message: %s", string(d.Body))
 			var reqBody map[string]interface{}
 			err := json.Unmarshal(d.Body, &reqBody)
 			if err != nil {
@@ -127,6 +126,7 @@ func store(reqBody map[string]interface{}) error {
 	minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
 
 	bucketName := "cozyish-images"
@@ -140,9 +140,7 @@ func store(reqBody map[string]interface{}) error {
 			fmt.Println("Make bucket error " + err.Error())
 			return err
 		}
-	} else if found {
-		fmt.Println("Bucket found")
-	} else {
+	} else if !found {
 		err = minioClient.MakeBucket(bucketName, location)
 		if err != nil {
 			fmt.Println("Make bucket error " + err.Error())
@@ -159,14 +157,13 @@ func store(reqBody map[string]interface{}) error {
 	case ".jpeg":
 		contentType = "image/jpeg"
 	}
-	fmt.Println("!@#!@# " + reqBody["id"].(string))
-	n, err := minioClient.FPutObject(bucketName, reqBody["id"].(string), filePath, minio.PutObjectOptions{ContentType: contentType})
+
+	_, err = minioClient.FPutObject(bucketName, reqBody["id"].(string), filePath, minio.PutObjectOptions{ContentType: contentType})
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
 
-	fmt.Println("Successfully uploaded of size %d\n", n)
 	return nil
 }
 

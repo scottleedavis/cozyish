@@ -150,9 +150,12 @@ func download(fileProperties map[string]interface{}) ([]byte, error) {
 			fmt.Println("Make bucket error " + err.Error())
 			return nil, err
 		}
-	}
-	if found {
-		fmt.Println("Bucket found")
+	} else if !found {
+		err = minioClient.MakeBucket(bucketName, location)
+		if err != nil {
+			fmt.Println("Make bucket error " + err.Error())
+			return nil, err
+		}
 	}
 
 	p := strings.Split(fileProperties["image"].(string), "/")

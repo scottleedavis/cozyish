@@ -19,6 +19,8 @@ import (
 
 var RABBITMQ = "localhost:5672"
 var MINIO = "localhost:9000"
+var MINIO_ACCESS_KEY = "minioaccesskey"
+var MINIO_SECRET_KEY = "miniosecretkey"
 
 func main() {
 
@@ -28,6 +30,14 @@ func main() {
 
 	if os.Getenv("MINIO") != "" {
 		MINIO = os.Getenv("MINIO")
+	}
+
+	if os.Getenv("MINIO_ACCESS_KEY") != "" {
+		MINIO_ACCESS_KEY = os.Getenv("MINIO_ACCESS_KEY")
+	}
+
+	if os.Getenv("MINIO_SECRET_KEY") != "" {
+		MINIO_SECRET_KEY = os.Getenv("MINIO_SECRET_KEY")
 	}
 
 	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
@@ -60,13 +70,11 @@ func main() {
 	wait := make(chan bool)
 	go func() {
 		for d := range msgs {
-			fmt.Println("Received a message: %s", string(d.Body))
 			var reqBody map[string]interface{}
 			err := json.Unmarshal(d.Body, &reqBody)
 			if err != nil {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
-				fmt.Println("***** " + reqBody["image"].(string))
 				err = transform(reqBody)
 				if err != nil {
 					fmt.Println("error in storing data " + err.Error())
@@ -110,13 +118,13 @@ func transform(reqBody map[string]interface{}) error {
 	filePath := p[len(p)-1]
 
 	endpoint := MINIO
-	accessKeyID := "minioaccesskey"
-	secretAccessKey := "miniosecretkey"
+	accessKeyID := MINIO_ACCESS_KEY
+	secretAccessKey := MINIO_SECRET_KEY
 	useSSL := false
 
 	minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
 	bucketName := "cozyish-images"
@@ -130,9 +138,7 @@ func transform(reqBody map[string]interface{}) error {
 			fmt.Println("Make bucket error " + err.Error())
 			return err
 		}
-	} else if found {
-		fmt.Println("Bucket found")
-	} else {
+	} else if !found {
 		err = minioClient.MakeBucket(bucketName, location)
 		if err != nil {
 			fmt.Println("Make bucket error " + err.Error())

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -51,13 +50,11 @@ func main() {
 	wait := make(chan bool)
 	go func() {
 		for d := range msgs {
-			fmt.Println("Received a message: %s", string(d.Body))
 			var reqBody map[string]interface{}
 			err := json.Unmarshal(d.Body, &reqBody)
 			if err != nil {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
-				fmt.Println("***** " + reqBody["image"].(string))
 				err = index(reqBody)
 				if err != nil {
 					fmt.Println("error in cacheing data " + err.Error())
@@ -117,11 +114,8 @@ func index(reqBody map[string]interface{}) error {
 	var r2 map[string]interface{}
 	err = json.NewDecoder(res.Body).Decode(&r2)
 	if err != nil {
-		fmt.Println("Error parsing the response body: %s", err)
-		return errors.New("Error parse es response")
+		return err
 	}
-
-	fmt.Println("[%s] %s; version=%d", res.Status(), r2["result"], int(r2["_version"].(float64)))
 
 	return nil
 }

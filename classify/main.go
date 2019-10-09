@@ -74,13 +74,13 @@ func main() {
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodPut, "http://"+DEEPDETECT+"/services/imageserv", bytes.NewReader([]byte(data)))
 	if err != nil {
-		// handle error
 		fmt.Println(err.Error())
+		return
 	}
 	_, err = client.Do(req)
 	if err != nil {
-		// handle error
 		fmt.Println(err.Error())
+		return
 	}
 
 	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
@@ -113,13 +113,11 @@ func main() {
 	wait := make(chan bool)
 	go func() {
 		for d := range msgs {
-			fmt.Println("Received a message: %s", string(d.Body))
 			var reqBody map[string]interface{}
 			err := json.Unmarshal(d.Body, &reqBody)
 			if err != nil {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
-				fmt.Println("***** " + reqBody["image"].(string))
 				err = classify(reqBody)
 				if err != nil {
 					fmt.Println("error in classifying data " + err.Error())
@@ -183,9 +181,7 @@ func classify(reqBody map[string]interface{}) error {
 			fmt.Println("Make bucket error " + err.Error())
 			return err
 		}
-	} else if found {
-		fmt.Println("Bucket found")
-	} else {
+	} else if !found {
 		err = minioClient.MakeBucket(bucketName, location)
 		if err != nil {
 			fmt.Println("Make bucket error " + err.Error())
@@ -239,17 +235,16 @@ func ImageClassify(reqBody map[string]interface{}) ([]string, error) {
 	resp, err := http.Post("http://"+DEEPDETECT+"/predict", "application/json", bytes.NewReader(buf))
 	if err != nil {
 		fmt.Println("Error in predict: " + err.Error())
+		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error in read resp body " + err.Error())
 		return nil, err
 	}
 	var bb map[string]interface{}
 	err = json.Unmarshal(body, &bb)
 	if err != nil {
-		fmt.Println("ErroORR " + err.Error())
 		return nil, err
 	}
 
@@ -277,7 +272,6 @@ func ImageClassify(reqBody map[string]interface{}) ([]string, error) {
 		}
 	}
 
-	// fmt.Println(fmt.Sprintf("%v", tags))
 	return tags, nil
 }
 
@@ -291,17 +285,13 @@ func NsfwScore(reqBody map[string]interface{}) (NSFW, error) {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error in read resp body " + err.Error())
 		return nsfw, err
 	}
 
 	err = json.Unmarshal(body, &nsfw)
 	if err != nil {
-		fmt.Println("ErroORR " + err.Error())
 		return nsfw, err
 	}
-
-	fmt.Println("nsfw classifier" + fmt.Sprintf("%f", nsfw.Score) + " " + nsfw.URL)
 
 	return nsfw, nil
 }
@@ -420,8 +410,6 @@ func index(reqBody map[string]interface{}) error {
 		fmt.Println("Error parsing the response body: %s", err)
 		return errors.New("Error parse es response")
 	}
-
-	fmt.Println("[%s] %s; version=%d", res.Status(), r2["result"], int(r2["_version"].(float64)))
 
 	return nil
 }
