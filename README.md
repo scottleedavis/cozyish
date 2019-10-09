@@ -23,6 +23,18 @@ The images are then cached, stored, transformed and classified.  A resultant obj
     }
 ```
 
+### Running
+```bash
+docker-compose build
+
+docker-compose up
+```
+
+### Usage
+1) Crawl a website for its images using the sitename as a path parameter. e.g. `localhost:4444/sitename.com`.   (alternatively, index a single image at `localhost:8000/api/index`)
+2) View all indexed, transformed and classified images. e.g. `localhost:8000/api/image`
+
+
 ### API
 * `:8000/api/index  `     - indexes given the above payload, returns the payload + a generated id field.
 * `:8000/api/image  `     - json array of indexed/stored/transformed images
@@ -30,12 +42,6 @@ The images are then cached, stored, transformed and classified.  A resultant obj
 * `:4444/{site} `         - without scheme e.g. secretagentsnowman.com
 
 
-### Running
-```bash
-docker-compose build
-
-docker-compose up
-```
 
 ### Dependencies
 * [Elasticsearch](https://www.elastic.co/)
