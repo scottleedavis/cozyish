@@ -8,6 +8,8 @@ services:
       - MINIO=minio:9000
       - MINIO_ACCESS_KEY=minioaccesskey
       - MINIO_SECRET_KEY=miniosecretkey
+    labels:
+      kompose.service.type: LoadBalancer
     ports:
       - "8000:8000"
     depends_on:
@@ -45,6 +47,8 @@ services:
       context: ./crawler
     environment:
       - API=api:8000
+    labels:
+      kompose.service.type: LoadBalancer
     ports:
       - "4444:4444"
   classify:

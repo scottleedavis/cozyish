@@ -1,8 +1,9 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert
+    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -42,6 +43,7 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert
+    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -54,10 +56,11 @@ spec:
     targetPort: 8000
   selector:
     io.kompose.service: api
+  type: LoadBalancer
 status:
   loadBalancer: {}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -88,7 +91,7 @@ spec:
       restartPolicy: Always
 status: {}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -129,11 +132,12 @@ spec:
       restartPolicy: Always
 status: {}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert
+    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -165,6 +169,7 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert
+    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -177,6 +182,7 @@ spec:
     targetPort: 4444
   selector:
     io.kompose.service: crawler
+  type: LoadBalancer
 status:
   loadBalancer: {}
 ---
@@ -195,7 +201,7 @@ spec:
       storage: 100Mi
 status: {}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -251,7 +257,7 @@ spec:
 status:
   loadBalancer: {}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -308,7 +314,7 @@ spec:
 status:
   loadBalancer: {}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -366,7 +372,7 @@ spec:
 status:
   loadBalancer: {}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -417,7 +423,7 @@ spec:
 status:
   loadBalancer: {}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -482,7 +488,7 @@ spec:
 status:
   loadBalancer: {}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -517,7 +523,7 @@ spec:
       restartPolicy: Always
 status: {}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
