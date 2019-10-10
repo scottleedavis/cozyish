@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: transform
+  name: transform
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: transform
+    spec:
+      containers:
+      - env:
+        - name: MINIO
+          value: minio:9000
+        - name: RABBITMQ
+          value: rabbitmq:5672
+        image: transform
+        name: transform
+        resources: {}
+      restartPolicy: Always
+status: {}

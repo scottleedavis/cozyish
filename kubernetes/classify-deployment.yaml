@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: classify
+  name: classify
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: classify
+    spec:
+      containers:
+      - env:
+        - name: DEEPDETECT
+          value: deepdetect:8080
+        - name: ELASTICSEARCH_URL
+          value: http://elasticsearch:9200
+        - name: MINIO
+          value: minio:9000
+        - name: MINIO_ACCESS_KEY
+          value: minioaccesskey
+        - name: MINIO_SECRET_KEY
+          value: miniosecretkey
+        - name: NSFWAPI
+          value: nsfw_api:5000
+        - name: RABBITMQ
+          value: rabbitmq:5672
+        image: classify
+        name: classify
+        resources: {}
+      restartPolicy: Always
+status: {}

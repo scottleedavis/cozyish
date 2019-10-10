@@ -1,0 +1,37 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: minio
+  name: minio
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: minio
+    spec:
+      containers:
+      - args:
+        - server
+        - /data
+        env:
+        - name: MINIO_ACCESS_KEY
+          value: minioaccesskey
+        - name: MINIO_SECRET_KEY
+          value: miniosecretkey
+        - name: MINIO_SSE_MASTER_KEY
+          value: my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574
+        image: minio/minio:RELEASE.2019-10-02T21-19-38Z
+        name: minio
+        ports:
+        - containerPort: 9000
+        resources: {}
+      restartPolicy: Always
+status: {}
