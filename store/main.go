@@ -76,12 +76,12 @@ func main() {
 					fmt.Println("error in storing data " + err.Error())
 				} else {
 					q2, err := ch.QueueDeclare(
-						"incoming-transform", // name
-						false,                // durable
-						false,                // delete when unused
-						false,                // exclusive
-						false,                // no-wait
-						nil,                  // arguments
+						"incoming-extract", // name
+						false,              // durable
+						false,              // delete when unused
+						false,              // exclusive
+						false,              // no-wait
+						nil,                // arguments
 					)
 					failOnError(err, "Failed to declare a queue")
 					err = ch.Publish(

@@ -56,6 +56,8 @@ spec:
     targetPort: 8000
   selector:
     io.kompose.service: api
+    matchLabels:
+      app: something
   type: LoadBalancer
 status:
   loadBalancer: {}
@@ -182,6 +184,8 @@ spec:
     targetPort: 4444
   selector:
     io.kompose.service: crawler
+    matchLabels:
+      app: something
   type: LoadBalancer
 status:
   loadBalancer: {}
@@ -254,6 +258,8 @@ spec:
     targetPort: 8080
   selector:
     io.kompose.service: deepdetect
+    matchLabels:
+      app: something
 status:
   loadBalancer: {}
 ---
@@ -311,6 +317,8 @@ spec:
     targetPort: 9300
   selector:
     io.kompose.service: elasticsearch
+    matchLabels:
+      app: something
 status:
   loadBalancer: {}
 ---
@@ -369,6 +377,8 @@ spec:
     targetPort: 9000
   selector:
     io.kompose.service: minio
+    matchLabels:
+      app: something
 status:
   loadBalancer: {}
 ---
@@ -420,6 +430,8 @@ spec:
     targetPort: 5000
   selector:
     io.kompose.service: nsfw-api
+    matchLabels:
+      app: something
 status:
   loadBalancer: {}
 ---
@@ -485,6 +497,8 @@ spec:
     targetPort: 15672
   selector:
     io.kompose.service: rabbitmq
+    matchLabels:
+      app: something
 status:
   loadBalancer: {}
 ---
