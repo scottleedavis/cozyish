@@ -34,9 +34,18 @@ services:
     depends_on:
       - minio
       - rabbitmq
-  transform:
-    build: ./transform
+  # transform:
+  #   build: ./transform
+  #   environment:
+  #     - RABBITMQ=rabbitmq:5672
+  #     - MINIO=minio:9000
+  #   depends_on:
+  #     - minio
+  #     - rabbitmq
+  extract:
+    build: ./extract
     environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
       - RABBITMQ=rabbitmq:5672
       - MINIO=minio:9000
     depends_on:
