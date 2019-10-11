@@ -12,7 +12,22 @@ A crawler searches a provided site url for all png & jpg images, and index's the
 The images are then cached, stored, analyzed and classified. A resultant object can be queried, and the final image downloadable. e.g.
 ```json
 {
-        "exif": [ ... ],
+        "exif": [
+            ...
+            {
+                "GPSLatitudeRef": "N"
+            },
+            {
+                "GPSLatitude": "26/1"
+            },
+            {
+                "GPSLongitudeRef": "W"
+            },
+            {
+                "GPSLongitude": "80/1"
+            },
+            ...
+        ],
         "id": "ähJäYZöh",
         "image": "fun_times.jpg",
         "nsfw_score": 0.016476402059197426,
