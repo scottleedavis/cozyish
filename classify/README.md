@@ -9,6 +9,8 @@ go run main.go
 https://www.deepdetect.com/server/docs/imagenet-classifier/
 
 docker run -d -p 8080:8080 -v /Users/scottd/workspace/cozyish/classify/models:/opt/models/ jolibrain/deepdetect_cpu
+docker run -p 8080:8080 -v /Users/scottd/workspace/cozyish/classify/models:/opt/models/ jolibrain/deepdetect_cpu
+
 
 load pretrained model
 curl -X PUT 'http://localhost:8080/services/imageserv' -d '{
@@ -27,6 +29,16 @@ curl -X PUT 'http://localhost:8080/services/imageserv' -d '{
     "type": "supervised"
 }
 '
+curl -X POST "http://localhost:8080/predict" -d '{
+       "service":"imageserv",
+       "parameters":{
+         "output":{
+           "best":3
+         }
+       },
+       "data":["http://secretagentsnowman.com/wp-content/blogs.dir/15/files/2012/12/funny0020.jpg"]
+     }'
+
 
 others trained models:
 https://www.deepdetect.com/models/?opts={%22media%22:%22image%22,%22type%22:%22type-all%22,%22backend%22:[%22caffe%22,%22tensorflow%22,%22caffe2%22],%22platform%22:%22desktop%22,%22searchTerm%22:%22%22}

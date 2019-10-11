@@ -60,22 +60,22 @@ services:
       kompose.service.type: LoadBalancer
     ports:
       - "4444:4444"
-  # classify:
-  #   build:
-  #     context: ./classify
-  #   environment:
-  #     - ELASTICSEARCH_URL=http://elasticsearch:9200
-  #     - RABBITMQ=rabbitmq:5672
-  #     - MINIO=minio:9000
-  #     - MINIO_ACCESS_KEY=minioaccesskey
-  #     - MINIO_SECRET_KEY=miniosecretkey
-  #     - NSFWAPI=nsfw_api:5000
-  #     - DEEPDETECT=deepdetect:8080
-  #   depends_on:
-  #     - rabbitmq
-  #     - elasticsearch
-  #     - minio
-  #     - nsfw_api
+  classify:
+    build:
+      context: ./classify
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - RABBITMQ=rabbitmq:5672
+      - MINIO=minio:9000
+      - MINIO_ACCESS_KEY=minioaccesskey
+      - MINIO_SECRET_KEY=miniosecretkey
+      - NSFWAPI=nsfw_api:5000
+      - DEEPDETECT=deepdetect:8080
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+      - minio
+      - nsfw_api
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
     environment:

@@ -9,19 +9,25 @@ A crawler searches a provided site url for all png & jpg images, and index's the
     "image": "http://example.com/some/image/path.jpg"
 }
 ```
-The images are then cached, stored, transformed and classified.  A resultant object can be queried, and the final image downloadable. e.g.
+The images are then cached, stored, analyzed and classified. A resultant object can be queried, and the final image downloadable. e.g.
 ```json
 {
-        "id": "sbykXske",
-        "image": "http://example.com/some/image/path.jpg",
-        "nsfw_score": 0.0003904797194991261,
+        "exif": [ ... ],
+        "id": "ähJäYZöh",
+        "image": "fun_times.jpg",
+        "nsfw_score": 0.016476402059197426,
+        "steganography": "This message was hidden in the image.",
         "tags": [
-            "digital",
-            "wall",
-            "analog"
+            "child",
+            "ball"
         ]
-    }
+    },
 ```
+	
+* [NSFW classifier by yahoo](https://github.com/yahoo/open_nsfw): classifier with nudity score 0 to 1
+* [Classification tags by Deepdetect](https://www.deepdetect.com):   Currently using [the ilsrvc_googlenet pretrained model](https://www.deepdetect.com/models/ilsvrc_googlenet/).  
+* [EXIF reader](https://github.com/dsoprea/go-exif)
+* [LSB-Steganography reader](https://github.com/auyer/steganography) 
 
 ### Running
 ```bash
@@ -50,7 +56,7 @@ docker-compose up
 * [RabbitMQ](https://www.rabbitmq.com/)
 * [Yahoo open nsfw model](https://github.com/yahoo/open_nsfw)
 * [Deep Detect](https://www.deepdetect.com/)
-* [go-exif-remove](https://github.com/scottleedavis/go-exif-remove)
+* [go-exif](https://github.com/dsoprea/go-exif)
 * [steganography](https://github.com/auyer/steganography)
 
 
