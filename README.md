@@ -29,7 +29,7 @@ The images are then cached, stored, analyzed and classified. A resultant object 
             ...
         ],
         "id": "ähJäYZöh",
-        "image": "fun_times.jpg",
+        "image": "path.jpg",
         "nsfw_score": 0.016476402059197426,
         "steganography": "This message was hidden in the image.",
         "tags": [
