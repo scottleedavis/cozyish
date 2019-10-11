@@ -12,31 +12,31 @@ A crawler searches a provided site url for all png & jpg images, and index's the
 The images are then cached, stored, analyzed and classified. A resultant object can be queried, and the final image downloadable. e.g.
 ```json
 {
-        "exif": [
-            ...
-            {
-                "GPSLatitudeRef": "N"
-            },
-            {
-                "GPSLatitude": "26/1"
-            },
-            {
-                "GPSLongitudeRef": "W"
-            },
-            {
-                "GPSLongitude": "80/1"
-            },
-            ...
-        ],
-        "id": "ähJäYZöh",
-        "image": "path.jpg",
-        "nsfw_score": 0.016476402059197426,
-        "steganography": "This message was hidden in the image.",
-        "tags": [
-            "child",
-            "ball"
-        ]
-    },
+    "exif": [
+        ...
+        {
+            "GPSLatitudeRef": "N"
+        },
+        {
+            "GPSLatitude": "26/1"
+        },
+        {
+            "GPSLongitudeRef": "W"
+        },
+        {
+            "GPSLongitude": "80/1"
+        },
+        ...
+    ],
+    "id": "ähJäYZöh",
+    "image": "path.jpg",
+    "nsfw_score": 0.016476402059197426,
+    "steganography": "This message was hidden in the image.",
+    "tags": [
+        "child",
+        "ball"
+    ]
+}
 ```
 	
 * [NSFW classifier by yahoo](https://github.com/yahoo/open_nsfw): classifier with nudity score 0 to 1
