@@ -27,12 +27,12 @@ func main() {
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
 	q, err := ch.QueueDeclare(
-		"incoming-cache", // name
-		false,            // durable
-		false,            // delete when unused
-		false,            // exclusive
-		false,            // no-wait
-		nil,              // arguments
+		"cache", // name
+		false,   // durable
+		false,   // delete when unused
+		false,   // exclusive
+		false,   // no-wait
+		nil,     // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
 
@@ -50,6 +50,8 @@ func main() {
 	wait := make(chan bool)
 	go func() {
 		for d := range msgs {
+			fmt.Println("******************")
+
 			var reqBody map[string]interface{}
 			err := json.Unmarshal(d.Body, &reqBody)
 			if err != nil {
