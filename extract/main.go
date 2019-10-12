@@ -80,6 +80,8 @@ func main() {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
 				err = extract(reqBody)
+				b, _ := json.Marshal(reqBody)
+				fmt.Println(string(b))
 				if err != nil {
 					fmt.Println("error in storing data " + err.Error())
 				} else {
@@ -174,8 +176,6 @@ func extract(reqBody map[string]interface{}) error {
 		return err
 	} else {
 
-		var fileProperties map[string]interface{}
-
 		steganography_msg := ""
 		var img image.Image
 		reader := bytes.NewReader(data)    // buffer reader
@@ -262,13 +262,12 @@ func extract(reqBody map[string]interface{}) error {
 				}
 			}
 
-			fileProperties, err = get(reqBody["id"].(string))
-			if err != nil {
-				return err
-			}
-
 		}
 
+		fileProperties, err := get(reqBody)
+		if err != nil {
+			return err
+		}
 		fileProperties["exif"] = exifEntries
 		fileProperties["steganography"] = steganography_msg
 
@@ -300,7 +299,7 @@ func DownloadFile(filepath string, url string) error {
 	return err
 }
 
-func get(id string) (map[string]interface{}, error) {
+func get(reqBody map[string]interface{}) (map[string]interface{}, error) {
 
 	var es, _ = elasticsearch.NewDefaultClient()
 
@@ -311,7 +310,7 @@ func get(id string) (map[string]interface{}, error) {
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"match": map[string]interface{}{
-				"id": id,
+				"id": reqBody["id"].(string),
 			},
 		},
 	}
@@ -353,18 +352,22 @@ func get(id string) (map[string]interface{}, error) {
 	}
 
 	var fileProperties map[string]interface{}
+	fileProperties["id"] = reqBody["id"].(string)
+	fileProperties["image"] = reqBody["image"].(string)
+
 	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 		check_id := (hit.(map[string]interface{})["_id"]).(string)
 		check_id = fmt.Sprintf("%v", check_id)
 		check_id = strings.TrimPrefix(check_id, "%!f(string=")
 		check_id = strings.TrimSuffix(check_id, ")")
-		if check_id == id {
+		if check_id == reqBody["id"].(string) {
 			doc := hit.(map[string]interface{})["_source"]
 			fileProperties = doc.(map[string]interface{})
 			break
 		}
 
 	}
+
 	return fileProperties, nil
 }
 

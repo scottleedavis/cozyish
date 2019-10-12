@@ -56,6 +56,8 @@ func main() {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
 				err = index(reqBody)
+				b, _ := json.Marshal(reqBody)
+				fmt.Println(string(b))
 				if err != nil {
 					fmt.Println("error in cacheing data " + err.Error())
 				} else {

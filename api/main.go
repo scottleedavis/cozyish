@@ -81,11 +81,12 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	reqBody["id"] = randomId()
 
-	queue(reqBody)
+	go queue(reqBody)
 
 	w.Header().Set("Content-Type", "application/json")
 	b, _ := json.Marshal(reqBody)
 	fmt.Fprintf(w, string(b))
+	fmt.Println(string(b))
 }
 
 func ImageListHandler(w http.ResponseWriter, r *http.Request) {
@@ -96,9 +97,10 @@ func ImageListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	j, err := json.Marshal(found)
+	j, _ := json.Marshal(found)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(j)
+	fmt.Println(string(j))
 }
 
 func ImageHandler(w http.ResponseWriter, r *http.Request) {
