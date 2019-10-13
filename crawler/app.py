@@ -16,7 +16,7 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 
 API_URL = "127.0.0.1:8000"
 
-max_depth = 3
+max_depth = 1  #increase to 3...
 
 @app.route('/', methods=['GET'])
 def index():
@@ -29,18 +29,32 @@ def index():
 	all_urls = []
 	url = request.args.get('url')
 
+	all_urls.append(url)
 	find_all_urls(url, url, all_urls)
 	all_urls = list(set(all_urls))
 
 	print(all_urls)
 
-	time.sleep(5)
+	all_images = find_all_images(all_urls)
+	all_images = list(set(all_images))
 
-	images_output = find_all_images(all_urls)
+	for image in all_images: 
 
-	print(images_output)
+		apiurl = "http://"+API_URL+"/api/index"
+		req = urllib.request.Request(apiurl)
+		req.add_header('Content-Type', 'application/json; charset=utf-8')
+		jsondata = ""
+		if image.startswith("http"):
+			jsondata = json.dumps({"image": image})
+		else:
+			jsondata = json.dumps({"image": url+"/"+image})
+		jsondataasbytes = jsondata.encode('utf-8')
+		req.add_header('Content-Length', len(jsondataasbytes))
+		urllib.request.urlopen(req, jsondataasbytes)
 
-	return jsonify(images_output)
+	print(all_images)
+
+	return jsonify(all_images)
 
 
 def find_all_images(all_urls):
@@ -51,6 +65,7 @@ def find_all_images(all_urls):
 			html = urlopen(url)
 			bs = BeautifulSoup(html, 'html.parser')
 			images = get_images(bs, url)
+			# print("images:"+images)
 			temp_images.extend(images)
 		except:
 			print("Error finding all images:"+url)
@@ -96,17 +111,6 @@ def get_images(bs, url):
 		else:
 			images_output.append(url+"/"+image["src"])
 
-		apiurl = "http://"+API_URL+"/api/index"
-		req = urllib.request.Request(apiurl)
-		req.add_header('Content-Type', 'application/json; charset=utf-8')
-		jsondata = ""
-		if image["src"].startswith("http"):
-			jsondata = json.dumps({"image": image["src"]})
-		else:
-			jsondata = json.dumps({"image": url+"/"+image["src"]})
-		jsondataasbytes = jsondata.encode('utf-8')
-		req.add_header('Content-Length', len(jsondataasbytes))
-		urllib.request.urlopen(req, jsondataasbytes)
 	return images_output
 
 app.run(host='0.0.0.0', port=4444, debug=True)

@@ -371,7 +371,7 @@ func get(reqBody map[string]interface{}) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	var fileProperties map[string]interface{}
+	fileProperties := make(map[string]interface{})
 	fileProperties["id"] = reqBody["id"].(string)
 	fileProperties["image"] = reqBody["image"].(string)
 

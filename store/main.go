@@ -72,8 +72,8 @@ func main() {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
 				err = store(reqBody)
-				b, _ := json.Marshal(reqBody)
-				fmt.Println(string(b))
+				// b, _ := json.Marshal(reqBody)
+				// fmt.Println(string(b))
 				if err != nil {
 					fmt.Println("error in storing data " + err.Error())
 				} else {
