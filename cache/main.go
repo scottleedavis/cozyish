@@ -50,8 +50,6 @@ func main() {
 	wait := make(chan bool)
 	go func() {
 		for d := range msgs {
-			fmt.Println("******************")
-
 			var reqBody map[string]interface{}
 			err := json.Unmarshal(d.Body, &reqBody)
 			if err != nil {
@@ -64,12 +62,12 @@ func main() {
 					fmt.Println("error in cacheing data " + err.Error())
 				} else {
 					q2, err := ch.QueueDeclare(
-						"incoming-store", // name
-						false,            // durable
-						false,            // delete when unused
-						false,            // exclusive
-						false,            // no-wait
-						nil,              // arguments
+						"store", // name
+						false,   // durable
+						false,   // delete when unused
+						false,   // exclusive
+						false,   // no-wait
+						nil,     // arguments
 					)
 					failOnError(err, "Failed to declare a queue")
 					err = ch.Publish(

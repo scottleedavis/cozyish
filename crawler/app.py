@@ -7,6 +7,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask import request
 from os import environ
+import time
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -33,12 +34,13 @@ def index():
 
 	print(all_urls)
 
+	time.sleep(5)
+
 	images_output = find_all_images(all_urls)
 
 	print(images_output)
 
 	return jsonify(images_output)
-	# return jsonify(all_urls)
 
 
 def find_all_images(all_urls):
@@ -49,9 +51,9 @@ def find_all_images(all_urls):
 			html = urlopen(url)
 			bs = BeautifulSoup(html, 'html.parser')
 			images = get_images(bs, url)
-			temp_images = temp_images + images
+			temp_images.extend(images)
 		except:
-			print("Error loading URL:"+url)
+			print("Error finding all images:"+url)
 
 	return temp_images
 

@@ -43,12 +43,12 @@ func main() {
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
 	q, err := ch.QueueDeclare(
-		"incoming-store", // name
-		false,            // durable
-		false,            // delete when unused
-		false,            // exclusive
-		false,            // no-wait
-		nil,              // arguments
+		"store", // name
+		false,   // durable
+		false,   // delete when unused
+		false,   // exclusive
+		false,   // no-wait
+		nil,     // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
 
@@ -78,12 +78,12 @@ func main() {
 					fmt.Println("error in storing data " + err.Error())
 				} else {
 					q2, err := ch.QueueDeclare(
-						"incoming-extract", // name
-						false,              // durable
-						false,              // delete when unused
-						false,              // exclusive
-						false,              // no-wait
-						nil,                // arguments
+						"extract", // name
+						false,     // durable
+						false,     // delete when unused
+						false,     // exclusive
+						false,     // no-wait
+						nil,       // arguments
 					)
 					failOnError(err, "Failed to declare a queue")
 					err = ch.Publish(
