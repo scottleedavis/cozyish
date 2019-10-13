@@ -46,7 +46,14 @@ docker-compose up
 ```
 
 ### Usage
-1) Crawl a website for its images using the sitename as a path parameter. e.g. `localhost:4444/?url=https://sitename.com`.   (alternatively, index a single image at `localhost:8000/api/index`)
+1) Crawl a website for its images using the sitename as a path parameter. 
+e.g. 
+* `localhost:4444/?url=https://sitename.com`.   
+* alternatively, index a single image at `POST localhost:8000/api/index
+{
+	"image": "http://example.com/path/to/image.png"
+}
+`
 2) View all indexed, transformed and classified images. e.g. `localhost:8000/api/image`
 
 
