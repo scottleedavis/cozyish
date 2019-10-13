@@ -72,7 +72,7 @@ func main() {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
 				err = store(reqBody)
-				// b, _ := json.Marshal(reqBody)
+				b, _ := json.Marshal(reqBody)
 				// fmt.Println(string(b))
 				if err != nil {
 					fmt.Println("error in storing data " + err.Error())
@@ -93,7 +93,7 @@ func main() {
 						false,   // immediate
 						amqp.Publishing{
 							ContentType: "application/json",
-							Body:        []byte(d.Body),
+							Body:        b,
 						})
 					failOnError(err, "Failed to publish a message")
 
@@ -117,7 +117,7 @@ func store(reqBody map[string]interface{}) error {
 	filePath := p[len(p)-1]
 
 	if err := DownloadFile(filePath, reqBody["image"].(string)); err != nil {
-		panic(err)
+		return err
 	}
 
 	endpoint := MINIO

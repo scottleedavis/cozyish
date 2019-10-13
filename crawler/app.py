@@ -16,7 +16,7 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 
 API_URL = "127.0.0.1:8000"
 
-max_depth = 1  #increase to 3...
+max_depth = 2
 
 @app.route('/', methods=['GET'])
 def index():

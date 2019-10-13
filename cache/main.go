@@ -56,18 +56,18 @@ func main() {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
 				err = index(reqBody)
-				// b, _ := json.Marshal(reqBody)
-				// fmt.Println(string(b))
+				b, _ := json.Marshal(reqBody)
+				fmt.Println(string(b))
 				if err != nil {
 					fmt.Println("error in cacheing data " + err.Error())
 				} else {
 					q2, err := ch.QueueDeclare(
-						"store", // name
-						false,   // durable
-						false,   // delete when unused
-						false,   // exclusive
-						false,   // no-wait
-						nil,     // arguments
+						"next", // name
+						false,  // durable
+						false,  // delete when unused
+						false,  // exclusive
+						false,  // no-wait
+						nil,    // arguments
 					)
 					failOnError(err, "Failed to declare a queue")
 					err = ch.Publish(
@@ -77,7 +77,7 @@ func main() {
 						false,   // immediate
 						amqp.Publishing{
 							ContentType: "application/json",
-							Body:        []byte(d.Body),
+							Body:        b,
 						})
 					failOnError(err, "Failed to publish a message")
 				}

@@ -333,7 +333,7 @@ func search() ([]map[string]interface{}, error) {
 func queue(reqBody map[string]interface{}) {
 
 	q, err := ch.QueueDeclare(
-		"cache", // name
+		"store", // name
 		false,   // durable
 		false,   // delete when unused
 		false,   // exclusive

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -14,7 +13,6 @@ import (
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v6"
 	esapi "github.com/elastic/go-elasticsearch/v6/esapi"
-	"github.com/minio/minio-go/v6"
 	"github.com/streadway/amqp"
 )
 
@@ -118,19 +116,19 @@ func main() {
 			if err != nil {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
-				err = classify(reqBody)
-				b, _ := json.Marshal(reqBody)
-				fmt.Println(string(b))
+				fileProperties, err := classify(reqBody)
+				b, _ := json.Marshal(fileProperties)
+				// fmt.Println(string(b))
 				if err != nil {
 					fmt.Println("error in classifying data " + err.Error())
 				} else {
 					q2, err := ch.QueueDeclare(
-						"transform", // name
-						false,       // durable
-						false,       // delete when unused
-						false,       // exclusive
-						false,       // no-wait
-						nil,         // arguments
+						"cache", // name
+						false,   // durable
+						false,   // delete when unused
+						false,   // exclusive
+						false,   // no-wait
+						nil,     // arguments
 					)
 					failOnError(err, "Failed to declare a queue")
 					err = ch.Publish(
@@ -140,7 +138,7 @@ func main() {
 						false,   // immediate
 						amqp.Publishing{
 							ContentType: "application/json",
-							Body:        []byte(d.Body),
+							Body:        b,
 						})
 					failOnError(err, "Failed to publish a message")
 				}
@@ -157,69 +155,25 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func classify(reqBody map[string]interface{}) error {
+func classify(reqBody map[string]interface{}) (map[string]interface{}, error) {
 
-	p := strings.Split(reqBody["image"].(string), "/")
-	filePath := p[len(p)-1]
-
-	endpoint := MINIO
-	accessKeyID := MINIO_ACCESS_KEY
-	secretAccessKey := MINIO_SECRET_KEY
-	useSSL := false
-
-	minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	bucketName := "cozyish-images"
-	location := "none"
-
-	found, err := minioClient.BucketExists(bucketName)
-	if err != nil {
-		fmt.Println("Bucket exists error " + err.Error())
-		err = minioClient.MakeBucket(bucketName, location)
-		if err != nil {
-			fmt.Println("Make bucket error " + err.Error())
-			return err
-		}
-	} else if !found {
-		err = minioClient.MakeBucket(bucketName, location)
-		if err != nil {
-			fmt.Println("Make bucket error " + err.Error())
-			return err
-		}
-	}
-
-	err = minioClient.FGetObject(bucketName, reqBody["id"].(string), filePath, minio.GetObjectOptions{})
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	fileProperties, err := get(reqBody)
-	if err != nil {
-		fmt.Println("Error finding image: %s", err)
-		return err
-	}
+	fileProperties := reqBody
 
 	nsfw, err := NsfwScore(reqBody)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return nil, err
 	}
 	fileProperties["nsfw_score"] = nsfw.Score
 
 	tags, err := ImageClassify(reqBody)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return nil, err
 	}
 	fileProperties["tags"] = tags
 
-	index(fileProperties)
-
-	return nil
+	return fileProperties, nil
 }
 
 func ImageClassify(reqBody map[string]interface{}) ([]string, error) {
@@ -296,99 +250,6 @@ func NsfwScore(reqBody map[string]interface{}) (NSFW, error) {
 	}
 
 	return nsfw, nil
-}
-
-func DownloadFile(filepath string, url string) error {
-
-	// Get the data
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
-}
-
-func get(reqBody map[string]interface{}) (map[string]interface{}, error) {
-
-	var es, _ = elasticsearch.NewDefaultClient()
-
-	var (
-		r map[string]interface{}
-	)
-	var buf bytes.Buffer
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
-				"id": reqBody["id"].(string),
-			},
-		},
-	}
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		fmt.Println("Error encoding query: %s", err)
-		return nil, err
-	}
-
-	res, err := es.Search(
-		es.Search.WithContext(context.Background()),
-		es.Search.WithIndex("cozyish-images"),
-		es.Search.WithBody(&buf),
-		es.Search.WithTrackTotalHits(true),
-		es.Search.WithPretty(),
-	)
-	if err != nil {
-		fmt.Println("Error getting response: %s", err)
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			fmt.Println("Error parsing the response body: %s", err)
-			return nil, err
-		} else {
-			fmt.Println("[%s] %s: %s",
-				res.Status(),
-				e["error"].(map[string]interface{})["type"],
-				e["error"].(map[string]interface{})["reason"],
-			)
-		}
-	}
-
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		fmt.Println("Error parsing the response body: %s", err)
-		return nil, err
-	}
-
-	fileProperties := make(map[string]interface{})
-	fileProperties["id"] = reqBody["id"].(string)
-	fileProperties["image"] = reqBody["image"].(string)
-
-	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-		check_id := (hit.(map[string]interface{})["_id"]).(string)
-		check_id = fmt.Sprintf("%v", check_id)
-		check_id = strings.TrimPrefix(check_id, "%!f(string=")
-		check_id = strings.TrimSuffix(check_id, ")")
-		if check_id == reqBody["id"].(string) {
-			doc := hit.(map[string]interface{})["_source"]
-			fileProperties = doc.(map[string]interface{})
-			break
-		}
-
-	}
-
-	return fileProperties, nil
 }
 
 func index(reqBody map[string]interface{}) error {

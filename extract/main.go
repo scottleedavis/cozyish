@@ -2,20 +2,14 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"image"
-	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
 
 	"github.com/dsoprea/go-exif"
-	elasticsearch "github.com/elastic/go-elasticsearch/v6"
-	esapi "github.com/elastic/go-elasticsearch/v6/esapi"
 	"github.com/minio/minio-go/v6"
 	"github.com/streadway/amqp"
 	steganography "gopkg.in/auyer/steganography.v2"
@@ -81,7 +75,7 @@ func main() {
 			} else {
 				fileProperties, err := extract(reqBody)
 				b, _ := json.Marshal(fileProperties)
-				fmt.Println(string(b))
+				// fmt.Println(string(b))
 				if err != nil {
 					fmt.Println("error in storing data " + err.Error())
 				} else {
@@ -171,7 +165,7 @@ func extract(reqBody map[string]interface{}) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	fileProperties := make(map[string]interface{})
+	fileProperties := reqBody
 
 	if data, err := ioutil.ReadFile(filePath); err != nil {
 		fmt.Printf(err.Error())
@@ -193,7 +187,7 @@ func extract(reqBody map[string]interface{}) (map[string]interface{}, error) {
 
 		exifEntries := []map[string]string{}
 		if rawExif, err := exif.SearchAndExtractExif(data); err != nil {
-			return nil, err
+			fmt.Println("unable to extract exif from file")
 		} else {
 
 			im := exif.NewIfdMappingWithStandard()
@@ -266,138 +260,9 @@ func extract(reqBody map[string]interface{}) (map[string]interface{}, error) {
 
 		}
 
-		fileProperties, err = get(reqBody)
-		if err != nil {
-			return nil, err
-		}
 		fileProperties["exif"] = exifEntries
 		fileProperties["steganography"] = steganography_msg
-
-		index(fileProperties)
-
 	}
 
 	return fileProperties, nil
-}
-
-func DownloadFile(filepath string, url string) error {
-
-	// Get the data
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
-}
-
-func get(reqBody map[string]interface{}) (map[string]interface{}, error) {
-
-	var es, _ = elasticsearch.NewDefaultClient()
-
-	var (
-		r map[string]interface{}
-	)
-	var buf bytes.Buffer
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
-				"id": reqBody["id"].(string),
-			},
-		},
-	}
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		fmt.Println("Error encoding query: %s", err)
-		return nil, err
-	}
-
-	res, err := es.Search(
-		es.Search.WithContext(context.Background()),
-		es.Search.WithIndex("cozyish-images"),
-		es.Search.WithBody(&buf),
-		es.Search.WithTrackTotalHits(true),
-		es.Search.WithPretty(),
-	)
-	if err != nil {
-		fmt.Println("Error getting response: %s", err)
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			fmt.Println("Error parsing the response body: %s", err)
-			return nil, err
-		} else {
-			fmt.Println("[%s] %s: %s",
-				res.Status(),
-				e["error"].(map[string]interface{})["type"],
-				e["error"].(map[string]interface{})["reason"],
-			)
-		}
-	}
-
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		fmt.Println("Error parsing the response body: %s", err)
-		return nil, err
-	}
-
-	fileProperties := make(map[string]interface{})
-	fileProperties["id"] = reqBody["id"].(string)
-	fileProperties["image"] = reqBody["image"].(string)
-
-	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-		check_id := (hit.(map[string]interface{})["_id"]).(string)
-		check_id = fmt.Sprintf("%v", check_id)
-		check_id = strings.TrimPrefix(check_id, "%!f(string=")
-		check_id = strings.TrimSuffix(check_id, ")")
-		if check_id == reqBody["id"].(string) {
-			doc := hit.(map[string]interface{})["_source"]
-			fileProperties = doc.(map[string]interface{})
-			break
-		}
-
-	}
-
-	return fileProperties, nil
-}
-
-func index(reqBody map[string]interface{}) error {
-
-	var es, _ = elasticsearch.NewDefaultClient()
-
-	jsonString, _ := json.Marshal(reqBody)
-
-	req := esapi.IndexRequest{
-		Index:      "cozyish-images",
-		DocumentID: fmt.Sprintf("%f", reqBody["id"].(string)),
-		Body:       strings.NewReader(string(jsonString)),
-		Refresh:    "true",
-	}
-
-	res, err := req.Do(context.Background(), es)
-	if err != nil {
-		fmt.Println("Error getting response: %s", err)
-	}
-	defer res.Body.Close()
-
-	var r2 map[string]interface{}
-	err = json.NewDecoder(res.Body).Decode(&r2)
-	if err != nil {
-		fmt.Println("Error parsing the response body: %s", err)
-		return errors.New("Error parse es response")
-	}
-
-	return nil
 }
