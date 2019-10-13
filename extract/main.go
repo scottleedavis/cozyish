@@ -79,8 +79,8 @@ func main() {
 			if err != nil {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
-				err = extract(reqBody)
-				b, _ := json.Marshal(reqBody)
+				fileProperties, err := extract(reqBody)
+				b, _ := json.Marshal(fileProperties)
 				fmt.Println(string(b))
 				if err != nil {
 					fmt.Println("error in storing data " + err.Error())
@@ -101,7 +101,7 @@ func main() {
 						false,   // immediate
 						amqp.Publishing{
 							ContentType: "application/json",
-							Body:        []byte(d.Body),
+							Body:        []byte(b),
 						})
 					failOnError(err, "Failed to publish a message")
 				}
@@ -131,7 +131,7 @@ type IfdEntry struct {
 	ValueString string      `json:"value_string"`
 }
 
-func extract(reqBody map[string]interface{}) error {
+func extract(reqBody map[string]interface{}) (map[string]interface{}, error) {
 
 	p := strings.Split(reqBody["image"].(string), "/")
 	filePath := p[len(p)-1]
@@ -143,7 +143,7 @@ func extract(reqBody map[string]interface{}) error {
 
 	minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	bucketName := "cozyish-images"
@@ -155,25 +155,27 @@ func extract(reqBody map[string]interface{}) error {
 		err = minioClient.MakeBucket(bucketName, location)
 		if err != nil {
 			fmt.Println("Make bucket error " + err.Error())
-			return err
+			return nil, err
 		}
 	} else if !found {
 		err = minioClient.MakeBucket(bucketName, location)
 		if err != nil {
 			fmt.Println("Make bucket error " + err.Error())
-			return err
+			return nil, err
 		}
 	}
 
 	err = minioClient.FGetObject(bucketName, reqBody["id"].(string), filePath, minio.GetObjectOptions{})
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return nil, err
 	}
+
+	fileProperties := make(map[string]interface{})
 
 	if data, err := ioutil.ReadFile(filePath); err != nil {
 		fmt.Printf(err.Error())
-		return err
+		return nil, err
 	} else {
 
 		steganography_msg := ""
@@ -191,7 +193,7 @@ func extract(reqBody map[string]interface{}) error {
 
 		exifEntries := []map[string]string{}
 		if rawExif, err := exif.SearchAndExtractExif(data); err != nil {
-			return nil
+			return nil, err
 		} else {
 
 			im := exif.NewIfdMappingWithStandard()
@@ -264,9 +266,9 @@ func extract(reqBody map[string]interface{}) error {
 
 		}
 
-		fileProperties, err := get(reqBody)
+		fileProperties, err = get(reqBody)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		fileProperties["exif"] = exifEntries
 		fileProperties["steganography"] = steganography_msg
@@ -275,7 +277,7 @@ func extract(reqBody map[string]interface{}) error {
 
 	}
 
-	return nil
+	return fileProperties, nil
 }
 
 func DownloadFile(filepath string, url string) error {

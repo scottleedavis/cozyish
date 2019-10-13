@@ -14,6 +14,7 @@ import (
 	"time"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v6"
+	esapi "github.com/elastic/go-elasticsearch/v6/esapi"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/minio/minio-go/v6"
@@ -39,6 +40,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/index", IndexHandler)
 	r.HandleFunc("/api/image", ImageListHandler)
+	r.HandleFunc("/api/image/delete", DeleteIndexHandler)
 	r.HandleFunc("/api/image/{id}", ImageHandler)
 
 	srv := &http.Server{
@@ -110,6 +112,21 @@ func ImageListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(j)
 	fmt.Println(string(j))
+}
+
+func DeleteIndexHandler(w http.ResponseWriter, r *http.Request) {
+
+	var es, _ = elasticsearch.NewDefaultClient()
+
+	req := esapi.IndicesDeleteRequest{
+		Index: []string{"cozyish-images"},
+	}
+
+	res, err := req.Do(context.Background(), es)
+	if err != nil {
+		fmt.Println("Error getting response: %s", err)
+	}
+	defer res.Body.Close()
 }
 
 func ImageHandler(w http.ResponseWriter, r *http.Request) {
