@@ -6,10 +6,14 @@ import (
 	"fmt"
 	"image"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/alexellis/faas/gateway/metrics"
 	"github.com/dsoprea/go-exif"
+	"github.com/gorilla/mux"
 	"github.com/minio/minio-go/v6"
 	"github.com/streadway/amqp"
 	steganography "gopkg.in/auyer/steganography.v2"
@@ -64,6 +68,19 @@ func main() {
 		nil,    // args
 	)
 	failOnError(err, "Failed to register a consumer")
+
+	go func() {
+		r := mux.NewRouter()
+		metricsHandler := metrics.PrometheusHandler()
+		r.Handle("/metrics", metricsHandler)
+		srv := &http.Server{
+			Handler:      r,
+			Addr:         "0.0.0.0:8002",
+			WriteTimeout: 15 * time.Second,
+			ReadTimeout:  15 * time.Second,
+		}
+		srv.ListenAndServe()
+	}()
 
 	wait := make(chan bool)
 	go func() {

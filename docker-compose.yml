@@ -1,5 +1,14 @@
 version: '3'
 services:
+  crawler:
+    build:
+      context: ./crawler
+    environment:
+      - API=api:8000
+    labels:
+      kompose.service.type: LoadBalancer
+    ports:
+      - "4444:4444"
   api:
     build: ./api
     environment:
@@ -16,16 +25,10 @@ services:
       - rabbitmq
       - elasticsearch
       - minio
-  cache:
-    build: ./cache
-    environment:
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - RABBITMQ=rabbitmq:5672
-    depends_on:
-      - elasticsearch
-      - rabbitmq
   store:
     build: ./store
+    ports:
+      - "8001:8001"
     environment:
       - RABBITMQ=rabbitmq:5672
       - MINIO=minio:9000
@@ -34,16 +37,10 @@ services:
     depends_on:
       - minio
       - rabbitmq
-  # transform:
-  #   build: ./transform
-  #   environment:
-  #     - RABBITMQ=rabbitmq:5672
-  #     - MINIO=minio:9000
-  #   depends_on:
-  #     - minio
-  #     - rabbitmq
   extract:
     build: ./extract
+    ports:
+      - "8002:8002"
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - RABBITMQ=rabbitmq:5672
@@ -51,16 +48,9 @@ services:
     depends_on:
       - minio
       - rabbitmq
-  crawler:
-    build:
-      context: ./crawler
-    environment:
-      - API=api:8000
-    labels:
-      kompose.service.type: LoadBalancer
-    ports:
-      - "4444:4444"
   classify:
+    ports:
+      - "8003:8003"
     build:
       context: ./classify
     environment:
@@ -76,6 +66,24 @@ services:
       - elasticsearch
       - minio
       - nsfw_api
+  cache:
+    build: ./cache
+    ports:
+      - "8004:8004"
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - RABBITMQ=rabbitmq:5672
+    depends_on:
+      - elasticsearch
+      - rabbitmq
+  # transform:
+  #   build: ./transform
+  #   environment:
+  #     - RABBITMQ=rabbitmq:5672
+  #     - MINIO=minio:9000
+  #   depends_on:
+  #     - minio
+  #     - rabbitmq
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
     environment:

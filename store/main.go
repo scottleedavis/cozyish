@@ -8,7 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/alexellis/faas/gateway/metrics"
+	"github.com/gorilla/mux"
 	"github.com/minio/minio-go/v6"
 	"github.com/streadway/amqp"
 )
@@ -62,6 +65,19 @@ func main() {
 		nil,    // args
 	)
 	failOnError(err, "Failed to register a consumer")
+
+	go func() {
+		r := mux.NewRouter()
+		metricsHandler := metrics.PrometheusHandler()
+		r.Handle("/metrics", metricsHandler)
+		srv := &http.Server{
+			Handler:      r,
+			Addr:         "0.0.0.0:8001",
+			WriteTimeout: 15 * time.Second,
+			ReadTimeout:  15 * time.Second,
+		}
+		srv.ListenAndServe()
+	}()
 
 	wait := make(chan bool)
 	go func() {

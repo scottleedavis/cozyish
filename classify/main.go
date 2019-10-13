@@ -10,9 +10,12 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/alexellis/faas/gateway/metrics"
 	elasticsearch "github.com/elastic/go-elasticsearch/v6"
 	esapi "github.com/elastic/go-elasticsearch/v6/esapi"
+	"github.com/gorilla/mux"
 	"github.com/streadway/amqp"
 )
 
@@ -107,6 +110,19 @@ func main() {
 		nil,    // args
 	)
 	failOnError(err, "Failed to register a consumer")
+
+	go func() {
+		r := mux.NewRouter()
+		metricsHandler := metrics.PrometheusHandler()
+		r.Handle("/metrics", metricsHandler)
+		srv := &http.Server{
+			Handler:      r,
+			Addr:         "0.0.0.0:8003",
+			WriteTimeout: 15 * time.Second,
+			ReadTimeout:  15 * time.Second,
+		}
+		srv.ListenAndServe()
+	}()
 
 	wait := make(chan bool)
 	go func() {

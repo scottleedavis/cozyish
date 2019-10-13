@@ -19,6 +19,8 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/minio/minio-go/v6"
 	"github.com/streadway/amqp"
+
+	"github.com/alexellis/faas/gateway/metrics"
 )
 
 var RABBITMQ = "localhost:5672"
@@ -42,6 +44,8 @@ func main() {
 	r.HandleFunc("/api/image", ImageListHandler)
 	r.HandleFunc("/api/image/delete", DeleteIndexHandler)
 	r.HandleFunc("/api/image/{id}", ImageHandler)
+	metricsHandler := metrics.PrometheusHandler()
+	r.Handle("/metrics", metricsHandler)
 
 	srv := &http.Server{
 		Handler:      r,
