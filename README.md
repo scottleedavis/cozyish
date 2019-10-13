@@ -3,13 +3,7 @@
 ![](cozyish.png)
 
 ### Concept
-A crawler searches a provided site url for all png & jpg images, and index's them against the api.  The index payload is 
-```json
-{
-    "image": "http://example.com/some/image/path.jpg"
-}
-```
-The images are then cached, stored, analyzed and classified. A resultant object can be queried, and the final image downloadable. e.g.
+The crawler searches a site url for all png & jpg images and index's them against the api.  The images are then stored, analyzed, classified and cached. The resultant object can be queried, and the final image downloadable. e.g.
 ```json
 {
     "exif": [
@@ -52,14 +46,21 @@ docker-compose up
 ```
 
 ### Usage
-1) Crawl a website for its images using the sitename as a path parameter. e.g. `localhost:4444/?url=https://sitename.com`.   (alternatively, index a single image at `localhost:8000/api/index`)
+1) Crawl a website for its images using the sitename as a path parameter. 
+e.g. 
+* `localhost:4444/?url=https://sitename.com`.   
+* alternatively, index a single image at `POST localhost:8000/api/index
+{
+	"image": "http://example.com/path/to/image.png"
+}
+`
 2) View all indexed, transformed and classified images. e.g. `localhost:8000/api/image`
 
 
 ### API
 * `:8000/api/index  `     - indexes given the above payload, returns the payload + a generated id field.
-* `:8000/api/image  `     - json array of indexed/stored/transformed images
-* `:8000/api/image/{id}`  - raw transformed image
+* `:8000/api/image  `     - json array of images
+* `:8000/api/image/{id}`  - raw image
 * `:4444/?url={site} `    - site e.g. http://secretagentsnowman.com
 
 
