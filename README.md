@@ -49,7 +49,9 @@ docker-compose up
 ```
 
 ### Usage
-1a) Crawl a website for its images using the sitename as a path parameter. 
+Two ingestors:
+
+1) Crawl a website for its images using the sitename as a path parameter. 
 e.g. 
 * `localhost:4444/?url=https://sitename.com`.   
 * alternatively, index a single image at `POST localhost:8000/api/index
@@ -57,10 +59,11 @@ e.g.
 	"image": "http://example.com/path/to/image.png"
 }
 `
-1b) Record a video that is converted to images 
+
+2) Record a video that is converted to images 
 * `localhost:3000`
 
-2) View all indexed, transformed and classified images. e.g. `localhost:8000/api/image`
+3) View all indexed, transformed and classified images. e.g. `localhost:8000/api/image`
 
 
 ### API
