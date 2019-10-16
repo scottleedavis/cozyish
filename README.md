@@ -3,7 +3,10 @@
 ![](cozyish.png)
 
 ### Concept
-The crawler searches a site url for all png & jpg images and index's them against the api.  The images are then stored, analyzed, classified and cached. The resultant object can be queried, and the final image downloadable. e.g.
+* The crawler searches a site url for all png & jpg images and index's them against the api.  
+* The video node converts video streams to indexed jpg images. 
+
+The images are then stored, analyzed, classified and cached. The resultant objects can be queried, and the final image downloadable. e.g.
 ```json
 {
     "exif": [
@@ -46,7 +49,7 @@ docker-compose up
 ```
 
 ### Usage
-1) Crawl a website for its images using the sitename as a path parameter. 
+1a) Crawl a website for its images using the sitename as a path parameter. 
 e.g. 
 * `localhost:4444/?url=https://sitename.com`.   
 * alternatively, index a single image at `POST localhost:8000/api/index
@@ -54,6 +57,9 @@ e.g.
 	"image": "http://example.com/path/to/image.png"
 }
 `
+1b) Record a video that is converted to images 
+* `localhost:3000`
+
 2) View all indexed, transformed and classified images. e.g. `localhost:8000/api/image`
 
 
