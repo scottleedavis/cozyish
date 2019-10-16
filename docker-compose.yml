@@ -9,6 +9,16 @@ services:
       kompose.service.type: LoadBalancer
     ports:
       - "4444:4444"
+  video:
+    build:
+      context: ./video
+    environment:
+      - API=api:8000
+      - VIDEO=video:3000
+    labels:
+      kompose.service.type: LoadBalancer
+    ports:
+      - "3000:3000"
   api:
     build: ./api
     environment:
