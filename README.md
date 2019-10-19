@@ -1,6 +1,7 @@
 # cozyish
 
 ![](cozyish.png)
+![](screenshot.png)
 
 ### Concept
 The crawler searches a site url for all png & jpg images and index's them against the api.  The images are then stored, analyzed, classified and cached. The resultant object can be queried, and the final image downloadable. e.g.
