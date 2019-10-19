@@ -41,7 +41,11 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/api/index", IndexHandler)
-	r.HandleFunc("/api/image", ImageListHandler)
+	r.HandleFunc("/api/image", ImageListHandler).Methods(http.MethodGet)
+	r.HandleFunc("/api/image", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Max-Age", "86400")
+	}).Methods(http.MethodOptions)
 	r.HandleFunc("/api/image/delete", DeleteIndexHandler)
 	r.HandleFunc("/api/image/{id}", ImageHandler)
 	metricsHandler := metrics.PrometheusHandler()
@@ -105,6 +109,8 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ImageListHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	found, err := search()
 	if err != nil {
 		fmt.Println("Error searching: %s", err)
