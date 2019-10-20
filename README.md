@@ -4,8 +4,8 @@
 <img src="screenshot.png" width="700" />
 
 ### Concept
-* The crawler searches a site url for all png & jpg images and index's them against the api.  
-* The video node converts video streams to indexed jpg images. 
+* The crawler searches a site url for png & jpg images and indexes them. 
+* The video app converts video streams to indexed jpg images. 
 
 The images are then stored, analyzed, and classified.
 
