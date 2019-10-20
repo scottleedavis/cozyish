@@ -50,13 +50,18 @@ docker-compose build
 
 docker-compose up
 ```
-Open http://localhost:7777 in a web browser
+* Open http://localhost:7777 in a web browser
 
 ### Running in Kubernetes
 ```bash
 cd k8s
+# example, EKS cluster
 make create
+
+# kompose create the cluster config
 make kubectl
+
+# deploy to cluster
 make deploy
 ```
 
