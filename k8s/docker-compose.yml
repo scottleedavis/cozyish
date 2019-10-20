@@ -1,0 +1,129 @@
+version: '3'
+services:
+  ui:
+    image: scottleedavis/cozyish-ui:latest
+    ports:
+      - "7777:8080"
+  crawler:
+    image: scottleedavis/cozyish-crawler:latest
+    environment:
+      - API=api:8000
+    ports:
+      - "4444:4444"
+  video:
+    image: scottleedavis/cozyish-video:latest
+    environment:
+      - API=api:8000
+      - VIDEO=video:3000
+    ports:
+      - "3000:3000"
+  api:
+    image: scottleedavis/cozyish-api:latest
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - RABBITMQ=rabbitmq:5672
+      - MINIO=minio:9000
+      - MINIO_ACCESS_KEY=minioaccesskey
+      - MINIO_SECRET_KEY=miniosecretkey
+    ports:
+      - "8000:8000"
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+      - minio
+  store:
+    image: scottleedavis/cozyish-store:latest
+    ports:
+      - "8001:8001"
+    environment:
+      - RABBITMQ=rabbitmq:5672
+      - MINIO=minio:9000
+      - MINIO_ACCESS_KEY=minioaccesskey
+      - MINIO_SECRET_KEY=miniosecretkey
+    depends_on:
+      - minio
+      - rabbitmq
+  extract:
+    image: scottleedavis/cozyish-extract:latest
+    ports:
+      - "8002:8002"
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - RABBITMQ=rabbitmq:5672
+      - MINIO=minio:9000
+    depends_on:
+      - minio
+      - rabbitmq
+  classify:
+    ports:
+      - "8003:8003"
+    image: scottleedavis/cozyish-classify:latest
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - RABBITMQ=rabbitmq:5672
+      - MINIO=minio:9000
+      - MINIO_ACCESS_KEY=minioaccesskey
+      - MINIO_SECRET_KEY=miniosecretkey
+      - NSFWAPI=nsfw_api:5000
+      - DEEPDETECT=deepdetect:8080
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+      - minio
+      - nsfw_api
+  cache:
+    image: scottleedavis/cozyish-cache:latest
+    ports:
+      - "8004:8004"
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - RABBITMQ=rabbitmq:5672
+    depends_on:
+      - elasticsearch
+      - rabbitmq
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9200:9200
+      - 9300:9300
+  minio:
+    image: "minio/minio:RELEASE.2019-10-02T21-19-38Z"
+    command: "server /data"
+    environment:
+      MINIO_ACCESS_KEY: minioaccesskey
+      MINIO_SECRET_KEY: miniosecretkey
+      MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+    ports:
+      - 9000:9000
+  rabbitmq:
+    image: 'bitnami/rabbitmq:3.7'
+    ports:
+      - '4369:4369'
+      - '5672:5672'
+      - '25672:25672'
+      - '15672:15672'
+    environment:
+      - RABBITMQ_USERNAME=user
+      - RABBITMQ_PASSWORD=bitnami
+  nsfw_api:
+    image: 'eugencepoi/nsfw_api:latest'
+    ports:
+      - '5000:5000'
+    environment:
+      - PORT=5000
+  deepdetect:
+      image: 'jolibrain/deepdetect_cpu'
+      ports:
+        - '8080:8080'
+      volumes:
+        - ../classify/models:/opt/models/ 
+
+
+

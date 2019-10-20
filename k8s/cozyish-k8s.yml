@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert
-    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -30,7 +29,7 @@ spec:
           value: miniosecretkey
         - name: RABBITMQ
           value: rabbitmq:5672
-        image: api
+        image: scottleedavis/cozyish-api:latest
         name: api
         ports:
         - containerPort: 8000
@@ -43,7 +42,6 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert
-    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -56,7 +54,6 @@ spec:
     targetPort: 8000
   selector:
     io.kompose.service: api
-  type: LoadBalancer
 status:
   loadBalancer: {}
 ---
@@ -85,7 +82,7 @@ spec:
           value: http://elasticsearch:9200
         - name: RABBITMQ
           value: rabbitmq:5672
-        image: cache
+        image: scottleedavis/cozyish-cache:latest
         name: cache
         ports:
         - containerPort: 8004
@@ -148,7 +145,7 @@ spec:
           value: nsfw_api:5000
         - name: RABBITMQ
           value: rabbitmq:5672
-        image: classify
+        image: scottleedavis/cozyish-classify:latest
         name: classify
         ports:
         - containerPort: 8003
@@ -181,7 +178,6 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert
-    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -200,7 +196,7 @@ spec:
       - env:
         - name: API
           value: api:8000
-        image: crawler
+        image: scottleedavis/cozyish-crawler:latest
         name: crawler
         ports:
         - containerPort: 4444
@@ -213,7 +209,6 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert
-    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -226,7 +221,6 @@ spec:
     targetPort: 4444
   selector:
     io.kompose.service: crawler
-  type: LoadBalancer
 status:
   loadBalancer: {}
 ---
@@ -385,7 +379,7 @@ spec:
           value: minio:9000
         - name: RABBITMQ
           value: rabbitmq:5672
-        image: extract
+        image: scottleedavis/cozyish-extract:latest
         name: extract
         ports:
         - containerPort: 8002
@@ -616,7 +610,7 @@ spec:
           value: miniosecretkey
         - name: RABBITMQ
           value: rabbitmq:5672
-        image: store
+        image: scottleedavis/cozyish-store:latest
         name: store
         ports:
         - containerPort: 8001
@@ -649,7 +643,6 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert
-    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -665,7 +658,7 @@ spec:
         io.kompose.service: ui
     spec:
       containers:
-      - image: ui
+      - image: scottleedavis/cozyish-ui:latest
         name: ui
         ports:
         - containerPort: 8080
@@ -678,7 +671,6 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert
-    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -691,7 +683,6 @@ spec:
     targetPort: 8080
   selector:
     io.kompose.service: ui
-  type: LoadBalancer
 status:
   loadBalancer: {}
 ---
@@ -700,7 +691,6 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert
-    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -721,7 +711,7 @@ spec:
           value: api:8000
         - name: VIDEO
           value: video:3000
-        image: video
+        image: scottleedavis/cozyish-video:latest
         name: video
         ports:
         - containerPort: 3000
@@ -734,7 +724,6 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert
-    kompose.service.type: LoadBalancer
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
@@ -747,7 +736,6 @@ spec:
     targetPort: 3000
   selector:
     io.kompose.service: video
-  type: LoadBalancer
 status:
   loadBalancer: {}
 ---
