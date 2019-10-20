@@ -53,12 +53,7 @@ docker-compose up
 
 ### Usage
 
-1) Visit http://localhost:7777
-
-2a) Crawl a website for its images in the siteUrl crawl component
-
-2b) Record a video that is converted to images 
-
+Visit http://localhost:7777 in a web browser
 
 ### API
 * `:8000/api/index  `     - indexes given the above payload, returns the payload + a generated id field.
