@@ -115,17 +115,35 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 func ImageListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	found, err := search()
-	if err != nil {
-		fmt.Println("Error searching: %s", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	vals := r.URL.Query()
+	url, ok := vals["url"]
+
+	if ok && url[0] != "" {
+		found, err := search(url[0])
+		if err != nil {
+			fmt.Println("Error searching: %s", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		j, _ := json.Marshal(found)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(j)
+		fmt.Println(string(j))
+	} else {
+		found, err := search("")
+		if err != nil {
+			fmt.Println("Error searching: %s", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		j, _ := json.Marshal(found)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(j)
+		fmt.Println(string(j))
 	}
 
-	j, _ := json.Marshal(found)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(j)
-	fmt.Println(string(j))
 }
 
 func DeleteIndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -287,7 +305,7 @@ func get(id string) (map[string]interface{}, error) {
 	return fileProperties, nil
 }
 
-func search() ([]map[string]interface{}, error) {
+func search(url string) ([]map[string]interface{}, error) {
 
 	var es, _ = elasticsearch.NewDefaultClient()
 
@@ -295,11 +313,23 @@ func search() ([]map[string]interface{}, error) {
 		r map[string]interface{}
 	)
 	var buf bytes.Buffer
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"match_all": map[string]interface{}{},
-		},
+	var query map[string]interface{}
+	if url == "" {
+		query = map[string]interface{}{
+			"query": map[string]interface{}{
+				"match_all": map[string]interface{}{},
+			},
+		}
+	} else {
+		query = map[string]interface{}{
+			"query": map[string]interface{}{
+				"match": map[string]interface{}{
+					"image": url,
+				},
+			},
+		}
 	}
+
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
 		fmt.Println("Error encoding query: %s", err)
 		return nil, err

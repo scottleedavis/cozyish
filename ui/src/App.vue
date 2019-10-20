@@ -34,31 +34,44 @@ import ContentArea from './components/ContentArea.vue'
 import axios from 'axios';
 import { EventBus } from "./event-bus.js";
 
+
+
 export default {
   name: 'app',
   components: {
     ContentArea
   },
   mounted() {
-    this.getAll()
+    this.refreshAuto()
   },
   data() {
     return {
-      url: ''
+      url: '',
+      samples: []
     }
   },
   methods: {
     refresh: function() {
       this.getAll()
     },
+    refreshAuto: function() {
+      var that = this;
+      setInterval(function() {
+        that.getAll();
+      }, 5000);
+    },
     deleteAll : function(){
       axios.get('http://127.0.0.1:8000/api/image/delete').then(() =>  this.getAll() )
     },
     getAll: function() {
       EventBus.$emit("samples_ready", []); 
-      axios.get('http://127.0.0.1:8000/api/image').then(response => {
-          this.images = response.data;
-          EventBus.$emit("samples_ready", response.data); 
+      if (this.url === "") 
+        return;
+      axios.get('http://127.0.0.1:8000/api/image?url='+this.url).then(response => {
+          if (response.data.length != this.samples) {
+            EventBus.$emit("samples_ready", response.data); 
+            this.samples = response.data;
+          }
       })
     },
     crawl: function() {

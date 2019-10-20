@@ -1,6 +1,9 @@
 <template>
+  <div>
+  <div v-if="samples.length > 0">
   <div class="gallery">
-    <div class="item" v-bind:key="sample" v-for="sample in samples">
+    <div  v-bind:key="sample" v-for="sample in samples">
+      <div class="item" v-if="sample.nsfw_score.toPrecision(3) != 0.00">
        <img width="200px" class="image" :src="sample.image">
        <div class="info">
           <p>{{ sample.tags.join(", ") }}</p>
@@ -11,7 +14,15 @@
           <label for="steg">steganography</label>
           <textarea id="steg" v-model="sample.steganography"></textarea>
        </div>
+      </div>
     </div>
+  </div>
+  </div>
+  <div class="empty" v-if="samples.length === 0">
+    <div>
+      No results found.
+    </div>
+  </div>
   </div>
 </template>
  
@@ -76,6 +87,10 @@
   }
   label {
         font-weight: bold;
+  }
+  .empty {
+    margin: 100px;
+    font-size: -webkit-xxx-large;
   }
 </style> 
  

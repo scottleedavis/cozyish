@@ -56,8 +56,6 @@ spec:
     targetPort: 8000
   selector:
     io.kompose.service: api
-    matchLabels:
-      app: something
   type: LoadBalancer
 status:
   loadBalancer: {}
@@ -89,9 +87,31 @@ spec:
           value: rabbitmq:5672
         image: cache
         name: cache
+        ports:
+        - containerPort: 8004
         resources: {}
       restartPolicy: Always
 status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: cache
+  name: cache
+spec:
+  ports:
+  - name: "8004"
+    port: 8004
+    targetPort: 8004
+  selector:
+    io.kompose.service: cache
+status:
+  loadBalancer: {}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -130,9 +150,31 @@ spec:
           value: rabbitmq:5672
         image: classify
         name: classify
+        ports:
+        - containerPort: 8003
         resources: {}
       restartPolicy: Always
 status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: classify
+  name: classify
+spec:
+  ports:
+  - name: "8003"
+    port: 8003
+    targetPort: 8003
+  selector:
+    io.kompose.service: classify
+status:
+  loadBalancer: {}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -184,8 +226,6 @@ spec:
     targetPort: 4444
   selector:
     io.kompose.service: crawler
-    matchLabels:
-      app: something
   type: LoadBalancer
 status:
   loadBalancer: {}
@@ -258,8 +298,6 @@ spec:
     targetPort: 8080
   selector:
     io.kompose.service: deepdetect
-    matchLabels:
-      app: something
 status:
   loadBalancer: {}
 ---
@@ -317,8 +355,61 @@ spec:
     targetPort: 9300
   selector:
     io.kompose.service: elasticsearch
-    matchLabels:
-      app: something
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: extract
+  name: extract
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: extract
+    spec:
+      containers:
+      - env:
+        - name: ELASTICSEARCH_URL
+          value: http://elasticsearch:9200
+        - name: MINIO
+          value: minio:9000
+        - name: RABBITMQ
+          value: rabbitmq:5672
+        image: extract
+        name: extract
+        ports:
+        - containerPort: 8002
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: extract
+  name: extract
+spec:
+  ports:
+  - name: "8002"
+    port: 8002
+    targetPort: 8002
+  selector:
+    io.kompose.service: extract
 status:
   loadBalancer: {}
 ---
@@ -377,8 +468,6 @@ spec:
     targetPort: 9000
   selector:
     io.kompose.service: minio
-    matchLabels:
-      app: something
 status:
   loadBalancer: {}
 ---
@@ -430,8 +519,6 @@ spec:
     targetPort: 5000
   selector:
     io.kompose.service: nsfw-api
-    matchLabels:
-      app: something
 status:
   loadBalancer: {}
 ---
@@ -497,8 +584,6 @@ spec:
     targetPort: 15672
   selector:
     io.kompose.service: rabbitmq
-    matchLabels:
-      app: something
 status:
   loadBalancer: {}
 ---
@@ -533,20 +618,43 @@ spec:
           value: rabbitmq:5672
         image: store
         name: store
+        ports:
+        - containerPort: 8001
         resources: {}
       restartPolicy: Always
 status: {}
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert
     kompose.version: 1.18.0 ()
   creationTimestamp: null
   labels:
-    io.kompose.service: transform
-  name: transform
+    io.kompose.service: store
+  name: store
+spec:
+  ports:
+  - name: "8001"
+    port: 8001
+    targetPort: 8001
+  selector:
+    io.kompose.service: store
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.service.type: LoadBalancer
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ui
+  name: ui
 spec:
   replicas: 1
   strategy: {}
@@ -554,17 +662,92 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        io.kompose.service: transform
+        io.kompose.service: ui
     spec:
       containers:
-      - env:
-        - name: MINIO
-          value: minio:9000
-        - name: RABBITMQ
-          value: rabbitmq:5672
-        image: transform
-        name: transform
+      - image: ui
+        name: ui
+        ports:
+        - containerPort: 8080
         resources: {}
       restartPolicy: Always
 status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.service.type: LoadBalancer
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ui
+  name: ui
+spec:
+  ports:
+  - name: "7777"
+    port: 7777
+    targetPort: 8080
+  selector:
+    io.kompose.service: ui
+  type: LoadBalancer
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.service.type: LoadBalancer
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: video
+  name: video
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: video
+    spec:
+      containers:
+      - env:
+        - name: API
+          value: api:8000
+        - name: VIDEO
+          value: video:3000
+        image: video
+        name: video
+        ports:
+        - containerPort: 3000
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.service.type: LoadBalancer
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: video
+  name: video
+spec:
+  ports:
+  - name: "3000"
+    port: 3000
+    targetPort: 3000
+  selector:
+    io.kompose.service: video
+  type: LoadBalancer
+status:
+  loadBalancer: {}
 ---
