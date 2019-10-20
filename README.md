@@ -44,16 +44,21 @@ The images are then stored, analyzed, classified and cached. The resultant objec
 }
 ```
 
-### Running
+### Running Locally
 ```bash
 docker-compose build
 
 docker-compose up
 ```
 
+### Running in Kubernetes
+```bash
+#tbd
+```
+
 ### Usage
 
-Visit http://localhost:7777 in a web browser
+Open http://localhost:7777 in a web browser
 
 ### API
 * `:8000/api/index  `     - indexes given the above payload, returns the payload + a generated id field.
