@@ -7,7 +7,7 @@
 * The crawler searches a site url for all png & jpg images and index's them against the api.  
 * The video node converts video streams to indexed jpg images. 
 
-The images are then stored, analyzed, classified and cached. The resultant objects can be queried, and the final image downloadable. e.g.
+The images are then stored, analyzed, and classified.
 
 * [NSFW classifier by yahoo](https://github.com/yahoo/open_nsfw): classifier with nudity score 0 to 1
 * [Classification tags by Deepdetect](https://www.deepdetect.com):   Currently using [the ilsrvc_googlenet pretrained model](https://www.deepdetect.com/models/ilsvrc_googlenet/).  
