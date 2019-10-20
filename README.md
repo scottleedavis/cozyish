@@ -2,6 +2,8 @@
 
 ![](cozyish.png | width=100)
 ![](screenshot.png | width=100)
+<img src="cozyish.png" width="200" />
+<img src="screenshot.png" width="200" />
 
 ### Concept
 * The crawler searches a site url for all png & jpg images and index's them against the api.  
