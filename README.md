@@ -50,15 +50,15 @@ docker-compose build
 
 docker-compose up
 ```
+Open http://localhost:7777 in a web browser
 
 ### Running in Kubernetes
 ```bash
-#tbd
+cd k8s
+make create
+make kubectl
+make deploy
 ```
-
-### Usage
-
-Open http://localhost:7777 in a web browser
 
 ### API
 * `:8000/api/index  `     - indexes given the above payload, returns the payload + a generated id field.
