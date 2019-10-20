@@ -1,7 +1,7 @@
 # cozyish
 
-![](cozyish.png)
-![](screenshot.png)
+![](cozyish.png | width=100)
+![](screenshot.png | width=100)
 
 ### Concept
 * The crawler searches a site url for all png & jpg images and index's them against the api.  
