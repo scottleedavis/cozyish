@@ -11,16 +11,16 @@
         <b-dropdown-item href="#"><iframe src="http://localhost:3000"></iframe></b-dropdown-item>
       </b-nav-item-dropdown> -->
       <b-nav-form>
-        <b-form-input size="sm" class="mr-sm-2" placeholder="Site URL"></b-form-input>
-        <b-button size="sm" class="my-2 my-sm-0" type="submit">Crawl</b-button>
+        <b-form-input size="sm" @keydown.native="siteUrlKeydown" v-model="url" class="mr-sm-2" placeholder="Site URL"></b-form-input>
+        <b-button size="sm" class="my-2 my-sm-0" @click=crawl>Crawl</b-button>
       </b-nav-form>
       <b-navbar-nav class="ml-auto">
         <b-nav-form>
-          <b-button size="sm" class="my-2 my-sm-0" type="submit">Refresh</b-button>
+          <b-button size="sm" class="my-2 my-sm-0" @click=refresh>Refresh</b-button>
           <b-navbar-nav>
             <b-nav-text>-</b-nav-text>
           </b-navbar-nav>
-          <b-button size="sm" class="my-2 my-sm-0" type="submit">Delete All</b-button>
+          <b-button size="sm" class="my-2 my-sm-0" @click=deleteAll>Delete All</b-button>
         </b-nav-form>
       </b-navbar-nav>
     </b-collapse>
@@ -40,12 +40,37 @@ export default {
     ContentArea
   },
   mounted() {
-    axios.get('http://127.0.0.1:8000/api/image').then(response => {
-        console.log(response.data);
-        this.images = response.data;
-        EventBus.$emit("samples_ready", response.data); 
-    })
-}
+    this.getAll()
+  },
+  data() {
+    return {
+      url: ''
+    }
+  },
+  methods: {
+    refresh: function() {
+      this.getAll()
+    },
+    deleteAll : function(){
+      axios.get('http://127.0.0.1:8000/api/image/delete').then(() =>  this.getAll() )
+    },
+    getAll: function() {
+      EventBus.$emit("samples_ready", []); 
+      axios.get('http://127.0.0.1:8000/api/image').then(response => {
+          this.images = response.data;
+          EventBus.$emit("samples_ready", response.data); 
+      })
+    },
+    crawl: function() {
+      axios.get('http://127.0.0.1:4444?url='+this.url).then(() => this.getAll())
+    },
+    siteUrlKeydown: function(event) {
+      if (event.which === 13) {
+        axios.get('http://127.0.0.1:4444?url='+this.url).then(() => this.getAll())
+      }
+    }
+  },
+
 }
 </script>
 

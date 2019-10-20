@@ -35,6 +35,16 @@
 
     methods: {
       samplesReady : function(data){
+        data = data.map(d => {
+          if (d.exif.length > 0) {
+            d.exif = d.exif.map(e => {
+                var key = Object.keys(e)[0]
+                var value = Object.values(e)[0]
+                return key+"="+value;
+            })
+          }
+          return d;
+        }) 
         this.samples = data;
       }
     },

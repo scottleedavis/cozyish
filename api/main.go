@@ -46,7 +46,11 @@ func main() {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Max-Age", "86400")
 	}).Methods(http.MethodOptions)
-	r.HandleFunc("/api/image/delete", DeleteIndexHandler)
+	r.HandleFunc("/api/image/delete", DeleteIndexHandler).Methods(http.MethodGet)
+	r.HandleFunc("/api/image/delete", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Max-Age", "86400")
+	}).Methods(http.MethodOptions)
 	r.HandleFunc("/api/image/{id}", ImageHandler)
 	metricsHandler := metrics.PrometheusHandler()
 	r.Handle("/metrics", metricsHandler)
@@ -125,6 +129,7 @@ func ImageListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteIndexHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	var es, _ = elasticsearch.NewDefaultClient()
 
