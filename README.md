@@ -8,6 +8,13 @@
 * The video node converts video streams to indexed jpg images. 
 
 The images are then stored, analyzed, classified and cached. The resultant objects can be queried, and the final image downloadable. e.g.
+
+* [NSFW classifier by yahoo](https://github.com/yahoo/open_nsfw): classifier with nudity score 0 to 1
+* [Classification tags by Deepdetect](https://www.deepdetect.com):   Currently using [the ilsrvc_googlenet pretrained model](https://www.deepdetect.com/models/ilsvrc_googlenet/).  
+* [EXIF reader](https://github.com/dsoprea/go-exif)
+* [LSB-Steganography reader](https://github.com/auyer/steganography) 
+
+
 ```json
 {
     "exif": [
@@ -36,11 +43,6 @@ The images are then stored, analyzed, classified and cached. The resultant objec
     ]
 }
 ```
-	
-* [NSFW classifier by yahoo](https://github.com/yahoo/open_nsfw): classifier with nudity score 0 to 1
-* [Classification tags by Deepdetect](https://www.deepdetect.com):   Currently using [the ilsrvc_googlenet pretrained model](https://www.deepdetect.com/models/ilsvrc_googlenet/).  
-* [EXIF reader](https://github.com/dsoprea/go-exif)
-* [LSB-Steganography reader](https://github.com/auyer/steganography) 
 
 ### Running
 ```bash
@@ -50,21 +52,12 @@ docker-compose up
 ```
 
 ### Usage
-Two ingestors:
 
-1) Crawl a website for its images using the sitename as a path parameter. 
-e.g. 
-* `localhost:4444/?url=https://sitename.com`.   
-* alternatively, index a single image at `POST localhost:8000/api/index
-{
-	"image": "http://example.com/path/to/image.png"
-}
-`
+1) Visit http://localhost:7777
 
-2) Record a video that is converted to images 
-* `localhost:3000`
+2a) Crawl a website for its images in the siteUrl crawl component
 
-3) View all indexed, transformed and classified images. e.g. `localhost:8000/api/image`
+2b) Record a video that is converted to images 
 
 
 ### API
@@ -72,8 +65,6 @@ e.g.
 * `:8000/api/image  `     - json array of images
 * `:8000/api/image/{id}`  - raw image
 * `:4444/?url={site} `    - site e.g. http://secretagentsnowman.com
-
-
 
 ### Dependencies
 * [Elasticsearch](https://www.elastic.co/)
