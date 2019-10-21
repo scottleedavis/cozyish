@@ -54,12 +54,7 @@ docker-compose up
 
 ### Running in Kubernetes
 ```bash
-cd k8s
-# EKS cluster
-make create-cluster
-
-# deploy to cluster
-make deploy
+kubectl apply -f https://raw.githubusercontent.com/scottleedavis/cozyish/master/k8s/cozyish.yml
 ```
 
 ### API
