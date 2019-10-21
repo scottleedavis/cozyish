@@ -3,6 +3,26 @@
 <img src="cozyish.png" width="700" />
 <img src="screenshot.png" width="700" />
 
+### Running Locally
+```bash
+docker-compose build
+
+docker-compose up
+```
+* Open http://localhost:7777 in a web browser
+
+### Running in Kubernetes
+```bash
+kubectl apply -f https://raw.githubusercontent.com/scottleedavis/cozyish/master/k8s/cozyish.yml
+
+# find the external endpoint
+kubectl get services ui-service
+
+# NAME         TYPE           CLUSTER-IP       EXTERNAL-IP                                   PORT(S)        AGE
+# ui-service   LoadBalancer   10.100.254.114   some.externalip.us-west-2.elb.amazonaws.com   80:32323/TCP   2m22s
+```
+* Open http://some.externalip.us-west-2.elb.amazonaws.com  in a web browser
+
 ### Concept
 * The crawler searches a site url for png & jpg images and indexes them. 
 * The video app converts video streams to indexed jpg images. 
@@ -43,26 +63,6 @@ The images are then stored, analyzed, and classified.
     ]
 }
 ```
-
-### Running Locally
-```bash
-docker-compose build
-
-docker-compose up
-```
-* Open http://localhost:7777 in a web browser
-
-### Running in Kubernetes
-```bash
-kubectl apply -f https://raw.githubusercontent.com/scottleedavis/cozyish/master/k8s/cozyish.yml
-
-# find the external endpoint
-kubectl get services ui-service
-
-# NAME         TYPE           CLUSTER-IP       EXTERNAL-IP                                   PORT(S)        AGE
-# ui-service   LoadBalancer   10.100.254.114   some.externalip.us-west-2.elb.amazonaws.com   80:32323/TCP   2m22s
-```
-* Open http://some.externalip.us-west-2.elb.amazonaws.com  in a web browser
 
 ### API
 * `:8000/api/index  `     - indexes given the above payload, returns the payload + a generated id field.
