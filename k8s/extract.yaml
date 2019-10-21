@@ -1,0 +1,47 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: extract-deployment
+spec:
+  selector:
+    matchLabels:
+      app: extract
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: extract
+    spec:
+      containers:
+      - name: extract
+        image: scottleedavis/cozyish-extract:latest
+        ports:
+        - containerPort: 8002
+        env:
+        - name: ELASTICSEARCH_URL
+          value: http://localhost:9200
+        - name: MINIO
+          value: localhost:9000
+        - name: RABBITMQ
+          value: localhost:5672
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: extract-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 8002
+    name: "8002"
+    protocol: TCP
+    targetPort: 8002
+  selector:
+    app: extract
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+

@@ -1,0 +1,586 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: api-deployment
+spec:
+  selector:
+    matchLabels:
+      app: api
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: scottleedavis/cozyish-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: ELASTICSEARCH_URL
+          value: http://localhost:9200
+        - name: MINIO
+          value: localhost:9000
+        - name: MINIO_ACCESS_KEY
+          value: minioaccesskey
+        - name: MINIO_SECRET_KEY
+          value: miniosecretkey
+        - name: RABBITMQ
+          value: localhost:5672
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 8000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app: ui
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: cache-deployment
+spec:
+  selector:
+    matchLabels:
+      app: cache
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cache
+    spec:
+      containers:
+      - name: cache
+        image: scottleedavis/cozyish-cache:latest
+        ports:
+        - containerPort: 8004
+        env:
+        - name: ELASTICSEARCH_URL
+          value: http://localhost:9200
+        - name: RABBITMQ
+          value: localhost:5672
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 8004
+    name: "8004"
+    protocol: TCP
+    targetPort: 8004
+  selector:
+    app: cache
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: classify-deployment
+spec:
+  selector:
+    matchLabels:
+      app: classify
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: classify
+    spec:
+      containers:
+      - name: classify
+        image: scottleedavis/cozyish-classify:latest
+        ports:
+        - containerPort: 8003
+        env:
+        - name: DEEPDETECT
+          value: localhost:8080
+        - name: ELASTICSEARCH_URL
+          value: http://localhost:9200
+        - name: MINIO
+          value: localhost:9000
+        - name: MINIO_ACCESS_KEY
+          value: minioaccesskey
+        - name: MINIO_SECRET_KEY
+          value: miniosecretkey
+        - name: NSFWAPI
+          value: localhost:5000
+        - name: RABBITMQ
+          value: localhost:5672
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: classify-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 8003
+    name: "8003"
+    protocol: TCP
+    targetPort: 8003
+  selector:
+    app: classify
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: crawler-deployment
+spec:
+  selector:
+    matchLabels:
+      app: crawler
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: crawler
+    spec:
+      containers:
+      - name: crawler
+        image: scottleedavis/cozyish-crawler:latest
+        ports:
+        - containerPort: 4444
+        env:
+        - name: API
+          value: localhost:8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crawler-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 4444
+    protocol: TCP
+    targetPort: 4444
+  selector:
+    app: crawler
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: deepdetect-deployment
+spec:
+  selector:
+    matchLabels:
+      app: deepdetect
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: deepdetect
+    spec:
+      containers:
+      - name: deepdetect
+        image: jolibrain/deepdetect_cpu:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PORT
+          value: "5000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deepdetect-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: deepdetect
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: elasticsearch-deployment
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
+        ports:
+        - containerPort: 9200
+        - containerPort: 9300
+        env:
+        - name: ES_JAVA_OPTS
+          value: -Xms512m -Xmx512m
+        - name: discovery.type
+          value: single-node
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 9200
+    name: "9200"
+    protocol: TCP
+    targetPort: 9200
+  - port: 9300
+    name: "9300"
+    protocol: TCP
+    targetPort: 9300
+  selector:
+    app: ui
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: extract-deployment
+spec:
+  selector:
+    matchLabels:
+      app: extract
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: extract
+    spec:
+      containers:
+      - name: extract
+        image: scottleedavis/cozyish-extract:latest
+        ports:
+        - containerPort: 8002
+        env:
+        - name: ELASTICSEARCH_URL
+          value: http://localhost:9200
+        - name: MINIO
+          value: localhost:9000
+        - name: RABBITMQ
+          value: localhost:5672
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: extract-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 8002
+    name: "8002"
+    protocol: TCP
+    targetPort: 8002
+  selector:
+    app: extract
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: minio-deployment
+spec:
+  selector:
+    matchLabels:
+      app: minio
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: minio/minio:RELEASE.2019-10-02T21-19-38Z
+        ports:
+        - containerPort: 9000
+        args:
+        - server
+        - /data
+        env:
+        - name: MINIO_ACCESS_KEY
+          value: minioaccesskey
+        - name: MINIO_SECRET_KEY
+          value: miniosecretkey
+        - name: MINIO_SSE_MASTER_KEY
+          value: my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 9000
+    name: "9000"
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app: minio
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: nsfw-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nsfw
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nsfw
+    spec:
+      containers:
+      - name: nsfw
+        image: eugencepoi/nsfw_api:latest
+        ports:
+        - containerPort: 9200
+        - containerPort: 9300
+        env:
+        - name: PORT
+          value: "5000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nsfw-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: nsfw
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: rabbit-deployment
+spec:
+  selector:
+    matchLabels:
+      app: rabbit
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rabbit
+    spec:
+      containers:
+      - name: rabbit
+        image: bitnami/rabbitmq:3.7
+        ports:
+        - containerPort: 4369
+        - containerPort: 5672
+        - containerPort: 25672
+        - containerPort: 15672
+        env:
+        - name: MINIO_ACCESS_KEY
+          value: minioaccesskey
+        - name: MINIO_SECRET_KEY
+          value: miniosecretkey
+        - name: MINIO_SSE_MASTER_KEY
+          value: my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbit-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 4369
+    name: "4369"
+    protocol: TCP
+    targetPort: 4369
+  - port: 5672
+    name: "5672"
+    protocol: TCP
+    targetPort: 5672
+  - port: 25672
+    name: "25672"
+    protocol: TCP
+    targetPort: 25672
+  - port: 15672
+    name: "15672"
+    protocol: TCP
+    targetPort: 15672
+  selector:
+    app: rabbit
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: store-deployment
+spec:
+  selector:
+    matchLabels:
+      app: store
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: store
+    spec:
+      containers:
+      - name: store
+        image: scottleedavis/cozyish-store:latest
+        ports:
+        - containerPort: 8001
+        env:
+        - name: MINIO
+          value: localhost:9000
+        - name: MINIO_ACCESS_KEY
+          value: minioaccesskey
+        - name: MINIO_SECRET_KEY
+          value: miniosecretkey
+        - name: RABBITMQ
+          value: localhost:5672
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: store-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 8001
+    name: "8001"
+    protocol: TCP
+    targetPort: 8001
+  selector:
+    app: store
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: ui-deployment
+spec:
+  selector:
+    matchLabels:
+      app: ui
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ui
+    spec:
+      containers:
+      - name: ui
+        image: scottleedavis/cozyish-ui:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: ui
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+
+---
