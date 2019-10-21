@@ -3,7 +3,7 @@
 <img src="cozyish.png" width="700" />
 <img src="screenshot.png" width="700" />
 
-### Running Locally
+### Run Locally
 ```bash
 docker-compose build
 
@@ -11,7 +11,7 @@ docker-compose up
 ```
 * Open http://localhost:7777 in a web browser
 
-### Running in Kubernetes
+### Run in Kubernetes
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/scottleedavis/cozyish/master/k8s/cozyish.yml
 
