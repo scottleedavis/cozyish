@@ -55,11 +55,8 @@ docker-compose up
 ### Running in Kubernetes
 ```bash
 cd k8s
-# example, EKS cluster
-make create
-
-# kompose create the cluster config
-make kubectl
+# EKS cluster
+make create-cluster
 
 # deploy to cluster
 make deploy
