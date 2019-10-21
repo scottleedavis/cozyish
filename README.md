@@ -55,7 +55,14 @@ docker-compose up
 ### Running in Kubernetes
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/scottleedavis/cozyish/master/k8s/cozyish.yml
+
+# find the external endpoint
+kubectl get services ui-service
+
+# NAME         TYPE           CLUSTER-IP       EXTERNAL-IP                                   PORT(S)        AGE
+# ui-service   LoadBalancer   10.100.254.114   some.externalip.us-west-2.elb.amazonaws.com   80:32323/TCP   2m22s
 ```
+* Open http://some.externalip.us-west-2.elb.amazonaws.com  in a web browser
 
 ### API
 * `:8000/api/index  `     - indexes given the above payload, returns the payload + a generated id field.
