@@ -34,8 +34,6 @@ import ContentArea from './components/ContentArea.vue'
 import axios from 'axios';
 import { EventBus } from "./event-bus.js";
 
-
-
 export default {
   name: 'app',
   components: {
@@ -47,7 +45,9 @@ export default {
   data() {
     return {
       url: '',
-      samples: []
+      samples: [],
+      apiUrl:  "localhost:8000",
+      crawlerUrl:  "localhost:4444",
     }
   },
   methods: {
@@ -61,13 +61,13 @@ export default {
       }, 5000);
     },
     deleteAll : function(){
-      axios.get('http://127.0.0.1:8000/api/image/delete').then(() =>  this.getAll() )
+      axios.get(this.apiUrl+'/api/image/delete').then(() =>  this.getAll() )
     },
     getAll: function() {
       EventBus.$emit("samples_ready", []); 
       if (this.url === "") 
         return;
-      axios.get('http://127.0.0.1:8000/api/image?url='+this.url).then(response => {
+      axios.get(this.apiUrl+'/api/image?url='+this.url).then(response => {
           if (response.data.length != this.samples) {
             EventBus.$emit("samples_ready", response.data); 
             this.samples = response.data;
@@ -75,11 +75,11 @@ export default {
       })
     },
     crawl: function() {
-      axios.get('http://127.0.0.1:4444?url='+this.url).then(() => this.getAll())
+      axios.get(this.crawlerUrl+'?url='+this.url).then(() => this.getAll())
     },
     siteUrlKeydown: function(event) {
       if (event.which === 13) {
-        axios.get('http://127.0.0.1:4444?url='+this.url).then(() => this.getAll())
+        axios.get(this.crawlerUrl+'?url='+this.url).then(() => this.getAll())
       }
     }
   },

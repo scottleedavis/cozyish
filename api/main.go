@@ -33,6 +33,7 @@ var ch = &amqp.Channel{}
 
 func main() {
 
+	fmt.Println("starting api...")
 	cookieStore.Options = &sessions.Options{
 		MaxAge:   1,
 		Secure:   false,
@@ -78,12 +79,16 @@ func main() {
 		MINIO_SECRET_KEY = os.Getenv("MINIO_SECRET_KEY")
 	}
 
+	fmt.Println("Starting RabbitMQ Connection...")
+
 	conn, err := amqp.Dial("amqp://user:bitnami@" + RABBITMQ + "/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 	ch, err = conn.Channel()
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
+
+	fmt.Println("Listen And Serve.")
 
 	srv.ListenAndServe()
 }
