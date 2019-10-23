@@ -23,6 +23,8 @@ var MINIO_SECRET_KEY = "miniosecretkey"
 
 func main() {
 
+	fmt.Println("Starting store...")
+
 	if os.Getenv("RABBITMQ") != "" {
 		RABBITMQ = os.Getenv("RABBITMQ")
 	}
@@ -54,6 +56,8 @@ func main() {
 		nil,     // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
+
+	fmt.Println("queue initialized, consuming...")
 
 	msgs, err := ch.Consume(
 		q.Name, // queue
@@ -87,9 +91,10 @@ func main() {
 			if err != nil {
 				fmt.Println("error in unmarshalling json " + err.Error())
 			} else {
+				fmt.Println("Received message")
 				err = store(reqBody)
 				b, _ := json.Marshal(reqBody)
-				// fmt.Println(string(b))
+				fmt.Println(string(b))
 				if err != nil {
 					fmt.Println("error in storing data " + err.Error())
 				} else {

@@ -407,6 +407,7 @@ func queue(reqBody map[string]interface{}) {
 		})
 	failOnError(err, "Failed to publish a message")
 
+	fmt.Println("sent to rabbit " + string(body))
 }
 
 func failOnError(err error, msg string) {

@@ -26,6 +26,8 @@ var MINIO_SECRET_KEY = "miniosecretkey"
 
 func main() {
 
+	fmt.Println("Starting extract...")
+
 	if os.Getenv("RABBITMQ") != "" {
 		RABBITMQ = os.Getenv("RABBITMQ")
 	}
@@ -57,6 +59,8 @@ func main() {
 		nil,       // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
+
+	fmt.Println("queue initialized, consuming...")
 
 	msgs, err := ch.Consume(
 		q.Name, // queue

@@ -1,6 +1,5 @@
 # cozyish
 
-<img src="cozyish.png" width="700" />
 <img src="screenshot.png" width="700" />
 
 ### Run Locally
@@ -22,6 +21,8 @@ kubectl get services ui-service
 # ui-service   LoadBalancer   10.100.254.114   some.externalip.us-west-2.elb.amazonaws.com   80:32323/TCP   2m22s
 ```
 * Open http://some.externalip.us-west-2.elb.amazonaws.com  in a web browser
+
+<img src="cozyish.png" width="700" />
 
 ### Concept
 * The crawler searches a site url for png & jpg images and indexes them. 

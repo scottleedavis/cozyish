@@ -20,6 +20,8 @@ var RABBITMQ = "localhost:5672"
 
 func main() {
 
+	fmt.Println("Starting cache...")
+
 	if os.Getenv("RABBITMQ") != "" {
 		RABBITMQ = os.Getenv("RABBITMQ")
 	}
@@ -39,6 +41,8 @@ func main() {
 		nil,     // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
+
+	fmt.Println("queue initialized, consuming...")
 
 	msgs, err := ch.Consume(
 		q.Name, // queue
