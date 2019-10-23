@@ -152,7 +152,7 @@ spec:
       - name: ui
         image: scottleedavis/cozyish-ui:latest
         ports:
-        - containerPort: 8080
+        - containerPort: 7777
 
 ---
 apiVersion: v1
@@ -183,7 +183,7 @@ spec:
   ports:
   - port: 80
     protocol: TCP
-    targetPort: 8080
+    targetPort: 7777
   selector:
     app: cozyish
   sessionAffinity: None

@@ -6,7 +6,7 @@ services:
     labels:
       kompose.service.type: LoadBalancer
     ports:
-      - "7777:8080"
+      - "7777:7777"
   crawler:
     build:
       context: ./crawler
