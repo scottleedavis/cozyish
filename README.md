@@ -22,9 +22,10 @@ kubectl get services ui-service
 ```
 * Open http://some.externalip.us-west-2.elb.amazonaws.com  in a web browser
 
+### Concept
+
 <img src="cozyish.png" width="700" />
 
-### Concept
 * The crawler searches a site url for png & jpg images and indexes them. 
 * The video app converts video streams to indexed jpg images. 
 
