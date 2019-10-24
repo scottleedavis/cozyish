@@ -12,7 +12,7 @@
       </b-nav-item-dropdown> -->
       <b-nav-form>
         <b-form-input size="sm" @keydown.native="siteUrlKeydown" v-model="url" class="mr-sm-2" placeholder="Site URL"></b-form-input>
-        <b-button size="sm" class="my-2 my-sm-0" @click=crawl>Crawl</b-button>
+        <b-button size="sm" class="my-2 my-sm-0" @click=crawl :disabled="crawling">{{ crawling ? "Crawling..." : "Crawl"}}</b-button>
       </b-nav-form>
       <b-navbar-nav class="ml-auto">
         <b-nav-form>
@@ -46,6 +46,7 @@ export default {
     return {
       url: '',
       samples: [],
+      crawling: false,
     }
   },
   methods: {
@@ -56,24 +57,27 @@ export default {
       var that = this;
       setInterval(function() {
         that.getAll();
-      }, 5000);
+      }, 60000);
     },
     deleteAll : function(){
       axios.get('/api/image/delete').then(() =>  this.getAll() )
     },
     getAll: function() {
-      EventBus.$emit("samples_ready", []); 
       if (this.url === "") 
         return;
       axios.get('/api/image?url='+this.url).then(response => {
-          if (response.data.length != this.samples) {
+          if (response.data.length != this.samples.length) {
             EventBus.$emit("samples_ready", response.data); 
             this.samples = response.data;
           }
       })
     },
     crawl: function() {
-      axios.get('/api?url='+this.url).then(() => this.getAll())
+      this.crawling = true;
+      axios.get('/api?url='+this.url).then(
+        () => {this.getAll();this.crawling = false},
+        () => {this.crawling = false}
+      );
     },
     siteUrlKeydown: function(event) {
       if (event.which === 13) {

@@ -55,7 +55,7 @@
             })
           }
           return d;
-        }) 
+        });
         this.samples = data;
       }
     },

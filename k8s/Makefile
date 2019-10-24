@@ -4,13 +4,13 @@ make: create-cluster kubectl deploy
 
 create-cluster:
 	eksctl create cluster \
-	--name "cozyish" \
+	--name "cozyish2" \
 	--nodes 2 \
 	--node-ami auto \
 	--region=us-west-2
 
 delete-cluster:
-	eksctl delete cluster --name="cozyish"
+	eksctl delete cluster --name="cozyish2"
 
 dashboard:
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml
